@@ -179,13 +179,13 @@ class Personaje(ABC):
         # Calcular daño final
         dano_final = int(dano * multiplicador)
         
-        # Aplicar defensa
-        dano_final = max(1, dano_final - (self.defensa // 4))
+        # Aplicar defensa (mejorada: //3 en lugar de //4)
+        dano_final = max(1, dano_final - (self.defensa // 3))
         
-        # Aplicar bonificación si está defendiendo
+        # Aplicar bonificación si está defendiendo (más potente: 35% en lugar de 50%)
         if "defendiendo" in self.estados:
-            dano_final = int(dano_final * 0.5)
-            print(f"{C.AZUL}¡Defensa activa! Daño reducido a un 50%{C.RESET}")
+            dano_final = int(dano_final * 0.35)
+            print(f"{C.AZUL}¡Defensa activa! Daño reducido a un 35%{C.RESET}")
         
         # Reducir vida
         self.vida_actual = max(0, self.vida_actual - dano_final)
@@ -289,7 +289,7 @@ class Personaje(ABC):
         """
         from utils import Colores as C
         
-        self.aplicar_estado("defendiendo", duracion=1)  # solo dura este turno
+        self.aplicar_estado("defendiendo", duracion=1)
         
         print(f"{C.AZUL}{self.nombre} se prepara para defender.{C.RESET}")
         

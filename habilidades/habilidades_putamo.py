@@ -22,20 +22,20 @@ class FlexionExplosiva(Habilidad):
     def usar(self, usuario, objetivo):
         daño_base = usuario.ataque * 2
         
-        # Extra daño si el objetivo es débil físicamente
+        # Extra daño si el objetivo es débil físicamente (reducido de 1.6 a 1.4)
         if objetivo.defensa < 10 or "Flaquito" in objetivo.tipo:
-            daño_base = int(daño_base * 1.6)
-            print(f"{C.ROJO}¡Contra los débiles! +60% daño{C.RESET}")
+            daño_base = int(daño_base * 1.4)
+            print(f"{C.ROJO}¡Contra los débiles! +40% daño{C.RESET}")
         
         daño = objetivo.recibir_dano(daño_base, "fuerza")
         
-        # Aumenta músculo
+        # Aumenta músculo (reducido de 10 a 8)
         if hasattr(usuario, '_musculo'):
-            usuario._musculo = min(150, usuario._musculo + 10)
+            usuario._musculo = min(150, usuario._musculo + 8)
         
-        print(f"{C.VERDE}¡Flexión explosiva! Músculo +10{C.RESET}")
+        print(f"{C.VERDE}¡Flexión explosiva! Músculo +8{C.RESET}")
         
-        return {"exito": True, "daño": daño, "musculo_aumentado": 10}
+        return {"exito": True, "daño": daño, "musculo_aumentado": 8}
 
 class BatidoDeProteinas(Habilidad):
     """Batido de Proteínas - Toma un batido de proteínas"""
@@ -110,7 +110,7 @@ class SelfieEnElEspejo(Habilidad):
         return {"exito": True, "musculo_aumentado": 15, "ataque_aumentado": 8}
 
 class Levantamiento(Habilidad):
-    """Levantamiento - Levanta peso extremo"""
+    """Levantamiento - Levanta peso extremo (BALANCEADO)"""
     
     def __init__(self):
         super().__init__(
@@ -122,33 +122,33 @@ class Levantamiento(Habilidad):
         self.es_curacion = False
     
     def usar(self, usuario, objetivo):
-        # Daño masivo
-        daño_base = usuario.ataque * 4
+        # Daño base reducido de *4 a *3
+        daño_base = usuario.ataque * 3
         
-        # Extra daño si el objetivo es ligero
+        # Extra daño si el objetivo es ligero (reducido de 1.5 a 1.4)
         if "Flaquito" in objetivo.tipo or "Guiri" in objetivo.tipo:
-            daño_base = int(daño_base * 1.5)
-            print(f"{C.ROJO}¡Contra ligeros! +50% daño{C.RESET}")
+            daño_base = int(daño_base * 1.4)
+            print(f"{C.ROJO}¡Contra ligeros! +40% daño{C.RESET}")
         
         daño = objetivo.recibir_dano(daño_base, "fuerza")
         
-        # Aumenta músculo significativamente
+        # Aumenta músculo (reducido de 25 a 20)
         if hasattr(usuario, '_musculo'):
-            usuario._musculo = min(150, usuario._musculo + 25)
+            usuario._musculo = min(150, usuario._musculo + 20)
         
-        # Registrar peso levantado
+        # Registrar peso levantado (rango reducido)
         if hasattr(usuario, '_peso_levantado'):
-            peso = random.randint(100, 200)
+            peso = random.randint(80, 150)  # antes 100-200
             usuario._peso_levantado += peso
         
-        # Posible lesión (30%) - duración 3 turnos
-        if random.random() < 0.3:
-            usuario.aplicar_estado("lesionado", duracion=3)
+        # Posible lesión (25% en lugar de 30%, duración reducida)
+        if random.random() < 0.25:
+            usuario.aplicar_estado("lesionado", duracion=2)  # antes 3
             print(f"{C.ROJO}¡Lesión por sobreesfuerzo!{C.RESET}")
         
-        print(f"{C.VERDE_BRILLANTE}¡LEVANTAMIENTO ÉPICO! Daño: {daño}, Músculo +25. Peso total levantado: {getattr(usuario, '_peso_levantado', 0)}kg{C.RESET}")
+        print(f"{C.VERDE_BRILLANTE}¡LEVANTAMIENTO ÉPICO! Daño: {daño}, Músculo +20. Peso total: {getattr(usuario, '_peso_levantado', 0)}kg{C.RESET}")
         
-        return {"exito": True, "daño": daño, "musculo_aumentado": 25}
+        return {"exito": True, "daño": daño, "musculo_aumentado": 20}
 
 class GritoDeGuerra(Habilidad):
     """Grito de Guerra - Da un grito motivador"""
@@ -191,7 +191,7 @@ class GritoDeGuerra(Habilidad):
         }
 
 class RutinaExtrema(Habilidad):
-    """Rutina Extrema - Realiza una rutina de entrenamiento extrema"""
+    """Rutina Extrema - Realiza una rutina de entrenamiento extrema (BALANCEADA)"""
     
     def __init__(self):
         super().__init__(
@@ -200,32 +200,31 @@ class RutinaExtrema(Habilidad):
             costo_energia=60,
             tipo="especial"
         )
-        self.es_curacion = True  # Cura vida
+        self.es_curacion = True
     
     def usar(self, usuario, objetivo):
         print(f"{C.ROJO_BRILLANTE}¡{usuario.nombre} comienza una RUTINA EXTREMA!{C.RESET}")
         
-        # Efectos masivos
         efectos = []
         
-        # 1. Daño masivo al objetivo (entrenamiento compartido forzado)
-        daño_base = usuario.ataque * 5
+        # 1. Daño masivo al objetivo (antes *5, ahora *4)
+        daño_base = usuario.ataque * 4
         daño = objetivo.recibir_dano(daño_base, "fuerza")
         efectos.append(f"Daño: {daño}")
         
-        # 2. Gran aumento de músculo
+        # 2. Aumento de músculo (antes +40, ahora +30)
         if hasattr(usuario, '_musculo'):
-            usuario._musculo = min(150, usuario._musculo + 40)
-            efectos.append("Músculo +40")
+            usuario._musculo = min(150, usuario._musculo + 30)
+            efectos.append("Músculo +30")
         
-        # 3. Aumento permanente de stats
-        usuario.ataque += 25
-        usuario.defensa += 20
-        usuario.velocidad += 15
-        efectos.append("Ataque +25, Defensa +20, Velocidad +15")
+        # 3. Aumento permanente de stats (antes +25/+20/+15, ahora +15/+12/+10)
+        usuario.ataque += 15
+        usuario.defensa += 12
+        usuario.velocidad += 10
+        efectos.append("Ataque +15, Defensa +12, Velocidad +10")
         
-        # 4. Curación por endorfinas
-        curacion = usuario.vida_maxima // 2
+        # 4. Curación por endorfinas (antes //2, ahora //3)
+        curacion = usuario.vida_maxima // 3
         vida_curada = usuario.recibir_curacion(curacion)
         efectos.append(f"Vida +{vida_curada}")
         
@@ -233,9 +232,9 @@ class RutinaExtrema(Habilidad):
         usuario.aplicar_estado("agotado", duracion=2)
         efectos.append("Agotado")
         
-        # 6. Posible lesión grave (20%) - duración 4 turnos
-        if random.random() < 0.2:
-            usuario.aplicar_estado("lesionado_grave", duracion=4)
+        # 6. Posible lesión grave (15% en lugar de 20%)
+        if random.random() < 0.15:
+            usuario.aplicar_estado("lesionado_grave", duracion=3)
             efectos.append("Lesión grave")
         
         print(f"{C.AZUL}Rutina extrema efectos: {', '.join(efectos)}{C.RESET}")
@@ -245,5 +244,5 @@ class RutinaExtrema(Habilidad):
             "efectos": efectos,
             "daño": daño,
             "curacion": vida_curada,
-            "musculo_aumentado": 40
+            "musculo_aumentado": 30
         }

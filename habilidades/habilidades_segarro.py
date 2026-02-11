@@ -89,7 +89,7 @@ class SuperMeca(Habilidad):
         return {"exito": True, "curacion": vida_curada}
 
 class CriticaConstructiva(Habilidad):
-    """Crítica 'Constructiva' - Critica todo lo que haces mal"""
+    """Crítica 'Constructiva' - Critica todo lo que haces mal (BALANCEADA)"""
     
     def __init__(self):
         super().__init__(
@@ -103,15 +103,15 @@ class CriticaConstructiva(Habilidad):
     def usar(self, usuario, objetivo):
         dano_base = usuario.ataque
         
-        # Daño extra si el objetivo es perfeccionista
+        # Daño extra si el objetivo es perfeccionista (reducido de 1.5 a 1.3)
         if objetivo.tipo in ["💪 PutoAmo del Gym", "📿 Católica Conservadora"]:
-            dano_base = int(dano_base * 1.5)
-            print(f"{C.ROJO}¡Le duele en el ego! +50%{C.RESET}")
+            dano_base = int(dano_base * 1.3)
+            print(f"{C.ROJO}¡Le duele en el ego! +30%{C.RESET}")
         
         daño = objetivo.recibir_dano(dano_base, "verborrea")
         
-        # Posible confusión (40%) - duración 1 turno
-        if random.random() < 0.4:
+        # Posible confusión (menor probabilidad) - duración 1 turno
+        if random.random() < 0.3:  # antes 0.4
             objetivo.aplicar_estado("confundido", duracion=1)
             print(f"{C.MAGENTA}¡{objetivo.nombre} se ha confundido!{C.RESET}")
         
@@ -151,12 +151,11 @@ class PedirFavor(Habilidad):
             costo_energia=40,
             tipo="especial"
         )
-        self.es_curacion = False  # Depende del efecto
+        self.es_curacion = False
     
     def usar(self, usuario, objetivo):
         print(f"{C.MAGENTA}{usuario.nombre} pide un favor completamente imposible...{C.RESET}")
         
-        # Efectos aleatorios (ruleta rusa de favores)
         efectos = [
             self._efecto_curar,
             self._efecto_danar,
@@ -172,79 +171,56 @@ class PedirFavor(Habilidad):
         return efecto_elegido(usuario, objetivo)
     
     def _efecto_curar(self, usuario, objetivo):
-        """Efecto: Se cura a sí mismo"""
         curacion = usuario.vida_maxima // 4
         vida_curada = usuario.recibir_curacion(curacion)
-        
         mensaje = f"¡El favor funciona! {usuario.nombre} se cura {vida_curada}."
         print(f"{C.VERDE}{mensaje}{C.RESET}")
-        
         return {"exito": True, "efecto": "curar", "curacion": vida_curada}
     
     def _efecto_danar(self, usuario, objetivo):
-        """Efecto: Daña al objetivo"""
         daño = objetivo.vida_maxima // 5
         daño_recibido = objetivo.recibir_dano(daño, "verborrea")
-        
         mensaje = f"¡El favor sale mal! {objetivo.nombre} pierde {daño_recibido} de vida."
         print(f"{C.ROJO}{mensaje}{C.RESET}")
-        
         return {"exito": True, "efecto": "dañar", "daño": daño_recibido}
     
     def _efecto_robar_energia(self, usuario, objetivo):
-        """Efecto: Roba energía"""
         energia_robada = min(30, objetivo.energia_actual)
         objetivo.energia_actual -= energia_robada
         usuario.energia_actual = min(usuario.energia_maxima, usuario.energia_actual + energia_robada)
-        
         mensaje = f"¡Consigue energía! Roba {energia_robada} de {objetivo.nombre}."
         print(f"{C.AZUL}{mensaje}{C.RESET}")
-        
         return {"exito": True, "efecto": "robar_energia", "energia_robada": energia_robada}
     
     def _efecto_confundir(self, usuario, objetivo):
-        """Efecto: Confunde al objetivo - duración 2 turnos"""
         objetivo.aplicar_estado("confundido", duracion=2)
-        
         mensaje = f"¡Confusión total! {objetivo.nombre} no sabe qué hacer."
         print(f"{C.MAGENTA}{mensaje}{C.RESET}")
-        
         return {"exito": True, "efecto": "confundir", "estado_aplicado": "confundido"}
     
     def _efecto_mejorar_stats(self, usuario, objetivo):
-        """Efecto: Mejora las stats del usuario - duración 2 turnos"""
         usuario.ataque += 10
         usuario.defensa += 5
         usuario.velocidad += 5
-        
         mensaje = f"¡Auto-mejora! Ataque +10, Defensa +5, Velocidad +5."
         print(f"{C.VERDE}{mensaje}{C.RESET}")
-        
         return {"exito": True, "efecto": "mejorar_stats"}
     
     def _efecto_empeorar_stats(self, usuario, objetivo):
-        """Efecto: Empeora las stats del usuario - duración 2 turnos"""
         usuario.ataque = max(10, usuario.ataque - 5)
         usuario.defensa = max(5, usuario.defensa - 3)
-        
         mensaje = f"¡Le sale el tiro por la culata! Ataque -5, Defensa -3."
         print(f"{C.ROJO}{mensaje}{C.RESET}")
-        
         return {"exito": True, "efecto": "empeorar_stats"}
     
     def _efecto_nada(self, usuario, objetivo):
-        """Efecto: No pasa nada"""
         mensaje = "Nadie le hace caso. No pasa nada."
         print(f"{C.AMARILLO}{mensaje}{C.RESET}")
-        
         return {"exito": True, "efecto": "nada"}
     
     def _efecto_critico(self, usuario, objetivo):
-        """Efecto: Daño crítico masivo"""
         daño = objetivo.vida_maxima // 3
         daño_recibido = objetivo.recibir_dano(daño, "verborrea")
-        
         mensaje = f"¡FAVOR ÉPICO! {objetivo.nombre} pierde {daño_recibido} de vida."
         print(f"{C.ROJO_BRILLANTE}{mensaje}{C.RESET}")
-        
         return {"exito": True, "efecto": "critico", "daño": daño_recibido}
