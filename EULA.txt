@@ -1,0 +1,50 @@
+ACUERDO DE LICENCIA DE USUARIO FINAL (EULA)
+Batalla Cómica Española
+Copyright (c) 2026 Luis Villegas Rivera.
+
+Este es un acuerdo legal entre usted (el "USUARIO") y Luis Villegas Rivera (el "AUTOR").
+Al instalar, copiar o utilizar este software, usted acepta todos los términos y condiciones.
+
+1. CONCESIÓN DE LICENCIA
+   El AUTOR le otorga una licencia limitada, no exclusiva, intransferible y revocable
+   para usar UNA (1) copia del software en un único dispositivo para su uso personal y
+   no comercial.
+
+2. RESTRICCIONES
+   El USUARIO NO PUEDE:
+   a) Distribuir, alquilar, arrendar, prestar, sublicenciar o vender el software.
+   b) Realizar ingeniería inversa, descompilar, desensamblar o intentar derivar el
+      código fuente del software, excepto en la medida en que dicha actividad esté
+      expresamente permitida por la ley aplicable.
+   c) Eliminar, ocultar o modificar cualquier aviso de copyright, marca registrada
+      u otros avisos de propiedad del software.
+   d) Usar el software para cualquier propósito ilegal o no autorizado.
+
+3. EXCEPCIÓN PARA MODIFICACIONES (MODS)
+   Se permite la creación y distribución gratuita de modificaciones ("mods") del juego,
+   siempre que cumplan estrictamente con los siguientes términos:
+   - Los mods deben ser distribuidos como archivos complementarios independientes.
+   - Los mods no pueden incluir el juego base ni partes significativas del mismo.
+   - Los mods no pueden ser vendidos ni monetizados de ninguna forma.
+   - Los mods deben atribuir crédito al AUTOR y enlazar a la página oficial.
+   - El AUTOR se reserva el derecho de vetar cualquier mod que considere inadecuado.
+
+4. TITULARIDAD
+   El software es propiedad del AUTOR y está protegido por las leyes de propiedad
+   intelectual y tratados internacionales. El AUTOR conserva todos los derechos,
+   títulos e intereses no otorgados expresamente en esta licencia.
+
+5. GARANTÍA LIMITADA
+   El software se proporciona "TAL CUAL", sin garantía de ningún tipo. El AUTOR no
+   garantiza que el software sea libre de errores o que su funcionamiento sea
+   ininterrumpido. El USUARIO asume todo el riesgo respecto a la calidad y rendimiento
+   del software.
+
+6. LIMITACIÓN DE RESPONSABILIDAD
+   En ningún caso el AUTOR será responsable de daños indirectos, incidentales,
+   especiales, ejemplares o consecuentes derivados del uso o la imposibilidad de uso
+   del software.
+
+7. ACEPTACIÓN
+   El uso del software implica la aceptación plena de estos términos. Si no está de
+   acuerdo, no instale ni utilice el software.
