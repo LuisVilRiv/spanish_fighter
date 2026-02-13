@@ -928,18 +928,18 @@ class ConspiracionTortillera(EventoBase):
             }
 
 
-class PikachuFalso(EventoBase):
-    """Pikachu Falso - Aparece un Pikachu pirata de Aliexpress."""
+class RatalectricaFalsa(EventoBase):
+    """Ratalectrica Falsa - Aparece una Ratalectrica pirata de ImportExpress."""
     
     def __init__(self):
         super().__init__(
-            nombre="[!] PIKACHU FALSO",
-            descripcion="Aparece un Pikachu pirata de Aliexpress. Explota el 70% de las veces.",
+            nombre="[!] RATALECTRICA FALSA",
+            descripcion="Aparece una Ratalectrica pirata de ImportExpress. Explota el 70% de las veces.",
             tipo="ultra_raro"
         )
     
     def activar(self, jugador, enemigo, turno_actual):
-        print(f"{C.AMARILLO_BRILLANTE}¡¡¡PIKACHU FALSO!!!{C.RESET}")
+        print(f"{C.AMARILLO_BRILLANTE}¡¡¡RATALECTRICA FALSA!!!{C.RESET}")
         
         # 70% de probabilidad de explosión
         explota = random.random() < 0.7
@@ -952,18 +952,18 @@ class PikachuFalso(EventoBase):
             objetivo = random.choice(["jugador", "enemigo", "ambos"])
             
             if objetivo == "jugador":
-                daño_recibido = jugador.recibir_dano(daño, "explosion_pikachu")
+                daño_recibido = jugador.recibir_dano(daño, "explosion_ratalectrica")
                 mensaje_daño = f"{jugador.nombre} recibe {daño_recibido} de daño por la explosión."
             elif objetivo == "enemigo":
-                daño_recibido = enemigo.recibir_dano(daño, "explosion_pikachu")
+                daño_recibido = enemigo.recibir_dano(daño, "explosion_ratalectrica")
                 mensaje_daño = f"{enemigo.nombre} recibe {daño_recibido} de daño por la explosión."
             else:  # ambos
-                daño_j = jugador.recibir_dano(daño, "explosion_pikachu")
-                daño_e = enemigo.recibir_dano(daño, "explosion_pikachu")
+                daño_j = jugador.recibir_dano(daño, "explosion_ratalectrica")
+                daño_e = enemigo.recibir_dano(daño, "explosion_ratalectrica")
                 mensaje_daño = f"Ambos reciben {daño_j}/{daño_e} de daño por la explosión."
             
-            mensaje = (f"{C.AMARILLO_BRILLANTE}¡¡¡PIKACHU FALSO!!!{C.RESET}\n"
-                      f"Aparece un Pikachu pirata de Aliexpress...\n"
+            mensaje = (f"{C.AMARILLO_BRILLANTE}¡¡¡RATALECTRICA FALSA!!!{C.RESET}\n"
+                      f"Aparece una Ratalectrica pirata de ImportExpress...\n"
                       f"¡EXPLOTA! (70% de probabilidad)\n"
                       f"{mensaje_daño}")
             
@@ -981,35 +981,35 @@ class PikachuFalso(EventoBase):
                 "te cura un poco",
                 "da un choque eléctrico leve",
                 "hace un truco gracioso",
-                "se convierte en un Ditto"
+                "se convierte en un Copión"
             ])
             
             if efectos == "te cura un poco":
                 curacion = 40
                 vida_curada = jugador.recibir_curacion(curacion)
-                mensaje_efecto = f"El Pikachu falso cura a {jugador.nombre} por {vida_curada} de vida."
+                mensaje_efecto = f"La Ratalectrica falsa cura a {jugador.nombre} por {vida_curada} de vida."
             elif efectos == "da un choque eléctrico leve":
                 daño = 10
                 objetivo = random.choice([jugador, enemigo])
-                daño_recibido = objetivo.recibir_dano(daño, "choque_pikachu")
-                mensaje_efecto = f"El Pikachu falso da un choque a {objetivo.nombre} por {daño_recibido} de daño."
+                daño_recibido = objetivo.recibir_dano(daño, "choque_ratalectrica")
+                mensaje_efecto = f"La Ratalectrica falsa da un choque a {objetivo.nombre} por {daño_recibido} de daño."
             elif efectos == "hace un truco gracioso":
                 # Aumenta la energía de ambos por la risa
                 energia = 25
                 jugador.energia_actual = min(jugador.energia_maxima, jugador.energia_actual + energia)
                 enemigo.energia_actual = min(enemigo.energia_maxima, enemigo.energia_actual + energia)
-                mensaje_efecto = f"El Pikachu falso hace un truco gracioso. Ambos recuperan {energia} de energía por la risa."
-            else:  # se convierte en un Ditto
+                mensaje_efecto = f"La Ratalectrica falsa hace un truco gracioso. Ambos recuperan {energia} de energía por la risa."
+            else:  # se convierte en un Copión
                 # Copia temporalmente las stats del más fuerte - duración 2 turnos
                 if jugador.ataque > enemigo.ataque:
                     enemigo.ataque = jugador.ataque
-                    mensaje_efecto = f"¡Se convierte en Ditto y copia a {jugador.nombre}! {enemigo.nombre} ahora tiene el mismo ataque."
+                    mensaje_efecto = f"¡Se convierte en Copión y copia a {jugador.nombre}! {enemigo.nombre} ahora tiene el mismo ataque."
                 else:
                     jugador.ataque = enemigo.ataque
-                    mensaje_efecto = f"¡Se convierte en Ditto y copia a {enemigo.nombre}! {jugador.nombre} ahora tiene el mismo ataque."
+                    mensaje_efecto = f"¡Se convierte en Copión y copia a {enemigo.nombre}! {jugador.nombre} ahora tiene el mismo ataque."
             
-            mensaje = (f"{C.AMARILLO_BRILLANTE}¡¡¡PIKACHU FALSO!!!{C.RESET}\n"
-                      f"Aparece un Pikachu pirata de Aliexpress...\n"
+            mensaje = (f"{C.AMARILLO_BRILLANTE}¡¡¡RATALECTRICA FALSA!!!{C.RESET}\n"
+                      f"Aparece una Ratalectrica pirata de ImportExpress...\n"
                       f"No explota (30% de probabilidad)\n"
                       f"{mensaje_efecto}")
             
@@ -1028,7 +1028,7 @@ class EspirituDeLaFeria(EventoBase):
     def __init__(self):
         super().__init__(
             nombre="👻 ESPÍRITU DE LA FERIA",
-            descripcion="El fantasma de la feria te ofrece una oreja de feria o te monta en la coca-cola.",
+            descripcion="El fantasma de la feria te ofrece una oreja de feria o te monta en un Refresco de cola.",
             tipo="ultra_raro"
         )
     
@@ -1036,7 +1036,7 @@ class EspirituDeLaFeria(EventoBase):
         print(f"{C.MAGENTA_BRILLANTE}¡¡¡ESPÍRITU DE LA FERIA!!!{C.RESET}")
         
         # El espíritu ofrece una de dos cosas
-        oferta = random.choice(["oreja_feria", "coca_cola"])
+        oferta = random.choice(["oreja_feria", "refresco_cola"])
         
         if oferta == "oreja_feria":
             # Oreja de feria - curación masiva
@@ -1062,7 +1062,7 @@ class EspirituDeLaFeria(EventoBase):
                 "tipo": "beneficio"
             }
         else:
-            # Monta en la coca-cola - efectos locos
+            # Monta en Refresco de cola - efectos locos
             # Daño por mareo
             daño_mareo = 30
             daño_j = jugador.recibir_dano(daño_mareo, "mareo_cocacola")
@@ -1078,14 +1078,14 @@ class EspirituDeLaFeria(EventoBase):
             enemigo.energia_actual = min(enemigo.energia_maxima, enemigo.energia_actual + energia_extra)
             
             mensaje = (f"{C.MAGENTA_BRILLANTE}¡¡¡ESPÍRITU DE LA FERIA!!!{C.RESET}\n"
-                      f"Aparece el fantasma de la feria y te monta en la COCA-COLA.\n"
+                      f"Aparece el fantasma de la feria y te monta en REFRESCO DE COLA.\n"
                       f"¡Viaje salvaje! Ambos reciben {daño_j} de daño por el mareo, "
                       f"pero recuperan {energia_extra} de energía por la diversión. ¡Están MAREADOS!")
             
             return {
                 "exito": True,
                 "mensaje": mensaje,
-                "oferta": "coca_cola",
+                "oferta": "refresco_cola",
                 "daño_jugador": daño_j,
                 "daño_enemigo": daño_e,
                 "energia_extra": energia_extra,

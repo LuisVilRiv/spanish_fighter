@@ -20,7 +20,7 @@ from .eventos_aleatorios import (
     # Eventos ultra raros
     FurgonetaBlanca,
     ConspiracionTortillera,
-    PikachuFalso,
+    RatalectricaFalsa,
     EspirituDeLaFeria,
     MocoEnElDedo
 )
@@ -44,7 +44,7 @@ EVENTOS_RAROS = [
 EVENTOS_ULTRA_RAROS = [
     FurgonetaBlanca,
     ConspiracionTortillera,
-    PikachuFalso,
+    RatalectricaFalsa,
     EspirituDeLaFeria,
     MocoEnElDedo
 ]
@@ -70,7 +70,7 @@ __all__ = [
     # Eventos ultra raros
     'FurgonetaBlanca',
     'ConspiracionTortillera',
-    'PikachuFalso',
+    'RatalectricaFalsa',
     'EspirituDeLaFeria',
     'MocoEnElDedo',
     

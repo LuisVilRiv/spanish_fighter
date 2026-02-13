@@ -84,7 +84,7 @@ class SuperMeca(Habilidad):
         # Regenera energía extra
         usuario.energia_actual = min(usuario.energia_maxima, usuario.energia_actual + 10)
         
-        print(f"{C.VERDE}¡Se cura {vida_curada} HP jugando al Candy Crush!{C.RESET}")
+        print(f"{C.VERDE}¡Se cura {vida_curada} HP jugando a Dulce Aplastamiento!{C.RESET}")
         
         return {"exito": True, "curacion": vida_curada}
 

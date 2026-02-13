@@ -61,10 +61,10 @@ class Choni(Personaje):
             "¡Qué fuerte!",
             "¡Me piro!",
             "¡Está guapísimo!",
-            "¡Lo vi en Instagram!"
+            "¡Lo vi en FotoFeed!"
         ]
         
-        # Filtros de Instagram
+        # Filtros de FotoFeed
         self._filtros = [
             "perrito",
             "corazones",
