@@ -1,7 +1,8 @@
-import pyglet
+import arcade
 import os
-from gui.widgets import ImageButton
-from scenes.menu_scene import MenuScene
+from scenes.base_view import BaseView
+from gui.widgets import ImageButton, RetroLabel
+from scenes.menu_scene import MenuView
 
 EULA_FILE = "eula_accepted.txt"
 EULA_TEXT = """
@@ -33,93 +34,108 @@ Al hacer clic en "Aceptar", usted confirma que ha leído y acepta
 todos los términos y condiciones de esta licencia.
 """
 
-class EulaScene:
+class EulaView(BaseView):
     def __init__(self, app):
-        self.app = app
-        self.batch = pyglet.graphics.Batch()
-        self.buttons = []
+        super().__init__(app)
         self.eula_accepted = os.path.exists(EULA_FILE)
+        self.ui_elements = []
 
         if self.eula_accepted:
-            # No inicializamos nada gráfico, saltaremos en on_enter
             return
 
-        # Fondo
         try:
-            bg_image = pyglet.image.load('img/fondos/eula.jpg')
-            self.background = pyglet.sprite.Sprite(bg_image, batch=self.batch)
+            self.background = arcade.load_texture('img/fondos/eula.jpg')
         except:
-            self.background = pyglet.shapes.Rectangle(0, 0, app.window.width, app.window.height, color=(30,70,30), batch=self.batch)
+            self.background = None
 
-        # Panel semitransparente para el texto (centrado, con márgenes)
+        self.panel_x = 0
+        self.panel_y = 0
+        self.panel_width = 0
+        self.panel_height = 0
+        self.label = None
+        self.accept_button = None
+        self.reject_button = None
+        self._setup_ui()
+
+    def _setup_ui(self):
+        if self.eula_accepted:
+            return
+        w = self.app.width
+        h = self.app.height
         margin = 50
-        panel_width = app.window.width - 2*margin
-        panel_height = app.window.height - 2*margin - 100  # dejar espacio para botones
-        self.panel = pyglet.shapes.Rectangle(margin, margin+80, panel_width, panel_height, color=(0,0,0), batch=self.batch)
-        self.panel.opacity = 180
+        panel_width = w - 2*margin
+        panel_height = h - 2*margin - 100
+        self.panel_x = margin
+        self.panel_y = margin + 80
+        self.panel_width = panel_width
+        self.panel_height = panel_height
 
-        # Texto del EULA
-        self.label = pyglet.text.Label(
+        self.label = RetroLabel(
             EULA_TEXT,
-            font_name='Arial', font_size=14,
-            x=margin+10, y=app.window.height - margin - 20, width=panel_width-20,
-            multiline=True, anchor_y='top',
-            color=(255,255,255,255), batch=self.batch
+            x=margin+10, y=h - margin - 20,
+            font_size=14, color=arcade.color.WHITE,
+            anchor_x='left', anchor_y='top',
+            width=panel_width-20, multiline=True
         )
 
-        # Botones (centrados horizontalmente)
         btn_width = 120
         btn_height = 40
         btn_y = margin
-        btn_accept = ImageButton(
-            x=app.window.width//2 - btn_width - 10, y=btn_y,
+        self.accept_button = ImageButton(
+            x=w//2 - btn_width - 10, y=btn_y,
+            width=btn_width, height=btn_height,
             image_path='img/botones/aceptar.png',
             hover_tint=(150,255,150),
-            callback=self.accept, batch=self.batch
+            callback=self.accept
         )
-        btn_reject = ImageButton(
-            x=app.window.width//2 + 10, y=btn_y,
+        self.reject_button = ImageButton(
+            x=w//2 + 10, y=btn_y,
+            width=btn_width, height=btn_height,
             image_path='img/botones/volver.png',
             hover_tint=(255,150,150),
-            callback=self.reject, batch=self.batch
+            callback=self.reject
         )
-        self.buttons.extend([btn_accept, btn_reject])
+        self.ui_elements = [self.accept_button, self.reject_button]
+
+    def on_show(self):
+        if self.eula_accepted:
+            self.app.goto_view(MenuView(self.app))
+
+    def on_draw(self):
+        self.clear()
+        if self.eula_accepted:
+            return
+        if self.background:
+            arcade.draw_texture_rectangle(self.app.width//2, self.app.height//2,
+                                          self.app.width, self.app.height, self.background)
+        else:
+            arcade.set_background_color((30,70,30))
+
+        # Panel semitransparente usando draw_lrwh_rectangle_filled
+        arcade.draw_lrwh_rectangle_filled(
+            self.panel_x, self.panel_y,
+            self.panel_width, self.panel_height,
+            (0, 0, 0, 180)
+        )
+        self.label.draw()
+        for btn in self.ui_elements:
+            btn.draw()
+
+    def on_mouse_motion(self, x, y, dx, dy):
+        super().on_mouse_motion(x, y, dx, dy)
+        for btn in self.ui_elements:
+            btn.on_mouse_motion(x, y, dx, dy)
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        super().on_mouse_press(x, y, button, modifiers)
 
     def accept(self):
         with open(EULA_FILE, 'w', encoding='utf-8') as f:
             f.write("aceptado")
-        self.app.goto_scene(MenuScene(self.app))
+        self.app.goto_view(MenuView(self.app))
 
     def reject(self):
-        pyglet.app.exit()
+        arcade.close_window()
 
-    def on_enter(self):
-        if self.eula_accepted:
-            # Si ya estaba aceptado, vamos al menú directamente
-            self.app.goto_scene(MenuScene(self.app))
-
-    def on_exit(self):
-        pass
-
-    def on_resume(self):
-        pass
-
-    def draw(self):
-        if not self.eula_accepted:
-            self.batch.draw()
-
-    def on_mouse_press(self, x, y, button, modifiers):
-        if not self.eula_accepted:
-            for btn in self.buttons:
-                btn.on_mouse_press(x, y, button)
-
-    def on_mouse_motion(self, x, y, dx, dy):
-        if not self.eula_accepted:
-            for btn in self.buttons:
-                btn.update(x, y)
-
-    def on_key_press(self, symbol, modifiers):
-        pass
-
-    def update(self, dt):
-        pass
+    def on_resize(self, width, height):
+        self._setup_ui()

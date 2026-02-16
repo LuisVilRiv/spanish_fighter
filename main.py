@@ -1,88 +1,75 @@
-import pyglet
-from pyglet.window import key, mouse
+import arcade
 import sys
 import os
 
-# Asegurar que el directorio actual esté en el path
 sys.path.insert(0, os.path.dirname(__file__))
 
-from scenes.eula_scene import EulaScene
-from scenes.menu_scene import MenuScene
-from scenes.character_select_scene import CharacterSelectScene
-from scenes.combat_scene import CombatScene
+from scenes.eula_scene import EulaView
+from scenes.menu_scene import MenuView
+from scenes.character_select_scene import CharacterSelectView
+from scenes.combat_scene import CombatView
 
-# Configuración de la ventana
-ANCHO = 1024
-ALTO = 768
-TITULO = "Batalla Cómica Española"
+SCREEN_WIDTH = 1024
+SCREEN_HEIGHT = 768
+SCREEN_TITLE = "Batalla Cómica Española"
 
-class GameApp:
+class GameApp(arcade.Window):
     def __init__(self):
-        self.window = pyglet.window.Window(ANCHO, ALTO, TITULO)
-        self.window.push_handlers(self)
-        
-        # Cargar icono (opcional)
+        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, resizable=True)
         try:
-            icono = pyglet.image.load('img/icono.png')
-            self.window.set_icon(icono)
+            icon = arcade.load_image('img/icono.png')
+            self.set_icon(icon)
         except:
             pass
-
-        # Pila de escenas (la última es la activa)
-        self.scenes = []
-        
-        # Escena inicial: EULA
-        self.goto_scene(EulaScene(self))
-        
-        # Reloj para FPS
-        pyglet.clock.schedule_interval(self.update, 1/60.0)
-
-    def run(self):
-        pyglet.app.run()
-
-    def on_draw(self):
-        self.window.clear()
-        if self.scenes:
-            self.scenes[-1].draw()
-
-    def on_mouse_press(self, x, y, button, modifiers):
-        if self.scenes:
-            self.scenes[-1].on_mouse_press(x, y, button, modifiers)
-
-    def on_mouse_motion(self, x, y, dx, dy):
-        if self.scenes:
-            self.scenes[-1].on_mouse_motion(x, y, dx, dy)
+        self.views = []
+        self.show_view(EulaView(self))
 
     def on_key_press(self, symbol, modifiers):
-        if self.scenes:
-            self.scenes[-1].on_key_press(symbol, modifiers)
+        if self.current_view:
+            self.current_view.on_key_press(symbol, modifiers)
 
-    def update(self, dt):
-        if self.scenes:
-            self.scenes[-1].update(dt)
+    def on_key_release(self, symbol, modifiers):
+        if self.current_view:
+            self.current_view.on_key_release(symbol, modifiers)
 
-    def goto_scene(self, scene):
-        """Cambia a una nueva escena, eliminando la anterior."""
-        if self.scenes:
-            self.scenes.pop().on_exit()
-        self.scenes.append(scene)
-        scene.on_enter()
+    def on_mouse_motion(self, x, y, dx, dy):
+        if self.current_view:
+            self.current_view.on_mouse_motion(x, y, dx, dy)
 
-    def push_scene(self, scene):
-        """Apila una escena encima de la actual."""
-        self.scenes.append(scene)
-        scene.on_enter()
+    def on_mouse_press(self, x, y, button, modifiers):
+        if self.current_view:
+            self.current_view.on_mouse_press(x, y, button, modifiers)
 
-    def pop_scene(self):
-        """Vuelve a la escena anterior."""
-        if len(self.scenes) > 1:
-            old = self.scenes.pop()
-            old.on_exit()
-            self.scenes[-1].on_resume()
+    def on_mouse_release(self, x, y, button, modifiers):
+        if self.current_view:
+            self.current_view.on_mouse_release(x, y, button, modifiers)
+
+    def on_resize(self, width, height):
+        super().on_resize(width, height)
+        if self.current_view:
+            self.current_view.on_resize(width, height)
+
+    def goto_view(self, view):
+        if self.views:
+            self.views.pop().on_hide()
+        self.views.append(view)
+        self.show_view(view)
+        view.on_show()
+
+    def push_view(self, view):
+        self.views.append(view)
+        self.show_view(view)
+        view.on_show()
+
+    def pop_view(self):
+        if len(self.views) > 1:
+            old = self.views.pop()
+            old.on_hide()
+            self.show_view(self.views[-1])
+            self.views[-1].on_show()
         else:
-            print("No hay escena anterior, cerrando juego.")
-            pyglet.app.exit()
+            arcade.close_window()
 
 if __name__ == "__main__":
     app = GameApp()
-    app.run()
+    arcade.run()

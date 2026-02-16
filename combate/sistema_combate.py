@@ -512,3 +512,50 @@ class Combate:
                 print(f"  {C.CYAN}- {evento}{C.RESET}")
             if len(eventos_destacados) > 5:
                 print(f"  {C.CYAN}- ... y {len(eventos_destacados)-5} eventos más{C.RESET}")
+
+    def ejecutar_turno_ia(self) -> ResultadoTurno:
+        """Ejecuta un turno completo de la IA (sin intervención del jugador)."""
+        if self.estado != EstadoCombate.EN_CURSO:
+            raise ValueError("El combate ya ha terminado")
+
+        self.turno_actual += 1
+        resultado = ResultadoTurno()
+
+        print(f"\n{C.NEGRITA}{C.AMARILLO}========== TURNO {self.turno_actual} (IA) =========={C.RESET}")
+
+        # La IA siempre actúa
+        resultado_ia = self._ejecutar_accion_ia()
+        resultado.ia_accion = resultado_ia.get("mensaje", "")
+        self._actualizar_resultado_ia(resultado, resultado_ia)
+
+        # Verificar si el jugador murió
+        if not self.jugador.esta_vivo():
+            resultado.jugador_vida_actual = 0
+            resultado.ia_vida_actual = self.ia.vida_actual
+            resultado.jugador_energia_actual = self.jugador.energia_actual
+            resultado.ia_energia_actual = self.ia.energia_actual
+            resultado.mensajes.append(f"{C.ROJO_BRILLANTE}¡{self.jugador.nombre} ha sido derrotado!{C.RESET}")
+            self._verificar_fin_combate()
+            return resultado
+
+        # Regeneración
+        self._aplicar_regeneracion(resultado)
+
+        # Evento aleatorio
+        if random.random() < self.probabilidad_evento:
+            evento_resultado = self._activar_evento_aleatorio()
+            resultado.evento_aleatorio = evento_resultado
+            resultado.mensajes.append(evento_resultado.get("mensaje", ""))
+            self.eventos_ocurridos += 1
+
+        # Efectos de estados
+        self._aplicar_efectos_estados(resultado)
+
+        resultado.jugador_vida_actual = self.jugador.vida_actual
+        resultado.ia_vida_actual = self.ia.vida_actual
+        resultado.jugador_energia_actual = self.jugador.energia_actual
+        resultado.ia_energia_actual = self.ia.energia_actual
+
+        self._verificar_fin_combate()
+        self.historial.append(resultado)
+        return resultado

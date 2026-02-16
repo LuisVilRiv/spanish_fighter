@@ -3,19 +3,20 @@ from scenes.base_view import BaseView
 from gui.widgets import ImageButton, RetroLabel
 from personajes import __all__ as personajes_list
 from personajes import *
-from scenes.rival_select_scene import RivalSelectView
+from scenes.combat_scene import CombatView
 
-class CharacterSelectView(BaseView):
-    def __init__(self, app):
+class RivalSelectView(BaseView):
+    def __init__(self, app, player_class):
         super().__init__(app)
+        self.player_class = player_class
         self.ui_elements = []
         self._setup_ui()
 
     def _setup_ui(self):
         w, h = self.app.width, self.app.height
-        self.background_color = (45,50,70)
-        self.title = RetroLabel("SELECCIONA TU LUCHADOR", w//2, h-60,
-                                font_size=32, color=(255,220,150))
+        self.background_color = (50,40,60)
+        self.title = RetroLabel("SELECCIONA TU RIVAL", w//2, h-60,
+                                font_size=32, color=(255,200,150))
 
         cols = 4
         btn_w, btn_h = 120, 120
@@ -25,6 +26,8 @@ class CharacterSelectView(BaseView):
         spacing_y = 150
 
         for i, clase_nombre in enumerate(personajes_list):
+            # Opcional: excluir al mismo personaje
+            # if clase_nombre == self.player_class.__name__: continue
             clase = globals()[clase_nombre]
             instancia = clase()
             nombre_archivo = clase_nombre.lower() + '.png'
@@ -35,23 +38,21 @@ class CharacterSelectView(BaseView):
             y = start_y - fila*spacing_y
 
             btn = ImageButton(
-                x=x, y=y-btn_h,  # ajuste para que la base sea y
+                x=x, y=y-btn_h,
                 width=btn_w, height=btn_h,
                 image_path=ruta_icono,
                 hover_tint=(220,220,220),
-                callback=lambda c=clase: self.select_character(c)
+                callback=lambda c=clase: self.select_rival(c)
             )
             self.ui_elements.append(btn)
 
-            # Etiqueta con nombre
             label = RetroLabel(
                 instancia.nombre[:12],
                 x=x + btn_w//2, y=y-20,
                 font_size=12
             )
-            self.ui_elements.append(label)  # no interactivo, solo se dibuja
+            self.ui_elements.append(label)
 
-        # Botón volver
         btn_back = ImageButton(
             x=w//2-100, y=50, width=200, height=50,
             text="VOLVER", normal_color=(120,120,140), hover_color=(150,150,180),
@@ -73,8 +74,10 @@ class CharacterSelectView(BaseView):
             if hasattr(elem, 'on_mouse_motion'):
                 elem.on_mouse_motion(x, y, dx, dy)
 
-    def select_character(self, clase):
-        self.app.push_view(RivalSelectView(self.app, player_class=clase))
+    def select_rival(self, rival_class):
+        jugador = self.player_class()
+        enemigo = rival_class()
+        self.app.push_view(CombatView(self.app, jugador, enemigo))
 
     def back(self):
         self.app.pop_view()
