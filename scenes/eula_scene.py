@@ -37,11 +37,7 @@ todos los términos y condiciones de esta licencia.
 class EulaView(BaseView):
     def __init__(self, app):
         super().__init__(app)
-        self.eula_accepted = os.path.exists(EULA_FILE)
         self.ui_elements = []
-
-        if self.eula_accepted:
-            return
 
         try:
             self.background = arcade.load_texture('img/fondos/eula.jpg')
@@ -58,13 +54,11 @@ class EulaView(BaseView):
         self._setup_ui()
 
     def _setup_ui(self):
-        if self.eula_accepted:
-            return
         w = self.app.width
         h = self.app.height
         margin = 50
-        panel_width = w - 2*margin
-        panel_height = h - 2*margin - 100
+        panel_width = w - 2 * margin
+        panel_height = h - 2 * margin - 100
         self.panel_x = margin
         self.panel_y = margin + 80
         self.panel_width = panel_width
@@ -72,50 +66,47 @@ class EulaView(BaseView):
 
         self.label = RetroLabel(
             EULA_TEXT,
-            x=margin+10, y=h - margin - 20,
+            x=margin + 10, y=h - margin - 20,
             font_size=14, color=arcade.color.WHITE,
             anchor_x='left', anchor_y='top',
-            width=panel_width-20, multiline=True
+            width=panel_width - 20, multiline=True
         )
 
         btn_width = 120
         btn_height = 40
         btn_y = margin
         self.accept_button = ImageButton(
-            x=w//2 - btn_width - 10, y=btn_y,
+            x=w // 2 - btn_width - 10, y=btn_y,
             width=btn_width, height=btn_height,
             image_path='img/botones/aceptar.png',
-            hover_tint=(150,255,150),
+            hover_tint=(150, 255, 150),
             callback=self.accept
         )
         self.reject_button = ImageButton(
-            x=w//2 + 10, y=btn_y,
+            x=w // 2 + 10, y=btn_y,
             width=btn_width, height=btn_height,
             image_path='img/botones/volver.png',
-            hover_tint=(255,150,150),
+            hover_tint=(255, 150, 150),
             callback=self.reject
         )
         self.ui_elements = [self.accept_button, self.reject_button]
 
     def on_show(self):
-        if self.eula_accepted:
-            self.app.goto_view(MenuView(self.app))
+        pass
 
     def on_draw(self):
         self.clear()
-        if self.eula_accepted:
-            return
         if self.background:
-            arcade.draw_texture_rectangle(self.app.width//2, self.app.height//2,
-                                          self.app.width, self.app.height, self.background)
+            arcade.draw_texture_rect(
+                self.background,
+                arcade.LRBT(0, self.app.width, 0, self.app.height)
+            )
         else:
-            arcade.set_background_color((30,70,30))
+            self.clear(arcade.types.Color(30, 70, 30, 255))
 
-        # Panel semitransparente usando draw_lrwh_rectangle_filled
-        arcade.draw_lrwh_rectangle_filled(
-            self.panel_x, self.panel_y,
-            self.panel_width, self.panel_height,
-            (0, 0, 0, 180)
+        arcade.draw_rect_filled(
+            arcade.LBWH(self.panel_x, self.panel_y, self.panel_width, self.panel_height),
+            arcade.types.Color(0, 0, 0, 180)
         )
         self.label.draw()
         for btn in self.ui_elements:

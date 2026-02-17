@@ -50,9 +50,9 @@ class MenuView(BaseView):
         self.clear()
         w, h = self.app.width, self.app.height
         # Gradiente simple
-        arcade.draw_rectangle_filled(w//2, h//2, w, h, self.bg_bottom)
-        arcade.draw_rectangle_filled(w//2, h-40, w, 80, arcade.color.DARK_SLATE_GRAY)
-        arcade.draw_rectangle_filled(w//2, 40, w, 80, arcade.color.DARK_SLATE_GRAY)
+        arcade.draw_rect_filled(arcade.XYWH(w//2, h//2, w, h), self.bg_bottom)
+        arcade.draw_rect_filled(arcade.XYWH(w//2, h-40, w, 80), arcade.color.DARK_SLATE_GRAY)
+        arcade.draw_rect_filled(arcade.XYWH(w//2, 40, w, 80), arcade.color.DARK_SLATE_GRAY)
         self.title.draw()
         for btn in self.ui_elements:
             btn.draw()

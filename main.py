@@ -15,14 +15,20 @@ SCREEN_TITLE = "Batalla Cómica Española"
 
 class GameApp(arcade.Window):
     def __init__(self):
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, resizable=True)
+        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, resizable=False)
         try:
             icon = arcade.load_image('img/icono.png')
             self.set_icon(icon)
         except:
             pass
+
         self.views = []
-        self.show_view(EulaView(self))
+        if os.path.exists('eula_accepted.txt'):
+            first_view = MenuView(self)
+        else:
+            first_view = EulaView(self)
+        self.views.append(first_view)
+        self.show_view(first_view)
 
     def on_key_press(self, symbol, modifiers):
         if self.current_view:
@@ -43,11 +49,6 @@ class GameApp(arcade.Window):
     def on_mouse_release(self, x, y, button, modifiers):
         if self.current_view:
             self.current_view.on_mouse_release(x, y, button, modifiers)
-
-    def on_resize(self, width, height):
-        super().on_resize(width, height)
-        if self.current_view:
-            self.current_view.on_resize(width, height)
 
     def goto_view(self, view):
         if self.views:

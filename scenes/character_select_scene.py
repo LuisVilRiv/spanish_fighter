@@ -61,7 +61,6 @@ class CharacterSelectView(BaseView):
 
     def on_draw(self):
         self.clear()
-        arcade.set_background_color(self.background_color)
         self.title.draw()
         for elem in self.ui_elements:
             if hasattr(elem, 'draw'):

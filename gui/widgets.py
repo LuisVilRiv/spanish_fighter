@@ -1,11 +1,12 @@
 import arcade
-from arcade import Sprite, Text, color
+from arcade import Text, color
 
 class RetroLabel(Text):
     def __init__(self, text, x, y, font_size=14, color=arcade.color.WHITE,
                  anchor_x='center', anchor_y='center', **kwargs):
         super().__init__(text, x, y, color, font_size,
                          anchor_x=anchor_x, anchor_y=anchor_y, **kwargs)
+
 
 class ImageButton:
     def __init__(self, x, y, width, height, text=None, image_path=None,
@@ -24,49 +25,67 @@ class ImageButton:
 
         if image_path:
             try:
-                texture = arcade.load_texture(image_path)
-                self.sprite = Sprite(texture, center_x=x + width//2, center_y=y + height//2)
-                self.sprite.width = width
-                self.sprite.height = height
+                self.texture = arcade.load_texture(image_path)
                 self.has_image = True
-                self.normal_tint = (255,255,255)
-                self.hover_tint = hover_tint
-                self.text_label = None
-                if text:
-                    self.text_label = RetroLabel(text, x + width//2, y + height//2,
-                                                 font_size=14, color=arcade.color.WHITE)
+                self.normal_tint = arcade.types.Color(255, 255, 255, 255)
+                _ht = hover_tint
+                self.hover_tint = arcade.types.Color(
+                    _ht[0], _ht[1], _ht[2], _ht[3] if len(_ht) > 3 else 255
+                )
             except:
                 self.has_image = False
+                self.texture = None
         else:
             self.has_image = False
-            self.bg_color = normal_color
-            self.border_color = arcade.color.WHITE
+            self.texture = None
+
+        if text:
+            self.text_label = RetroLabel(
+                text,
+                x + width//2,
+                y + height//2,
+                font_size=14,
+                color=arcade.color.WHITE
+            )
+        else:
             self.text_label = None
-            if text:
-                self.text_label = RetroLabel(text, x + width//2, y + height//2,
-                                             font_size=14, color=arcade.color.WHITE)
 
     def update(self, x, y):
         if not self.visible:
             return
-        self.hovered = (self.x <= x <= self.x + self.width and
-                        self.y <= y <= self.y + self.height)
+        self.hovered = (
+            self.x <= x <= self.x + self.width and
+            self.y <= y <= self.y + self.height
+        )
 
     def draw(self):
         if not self.visible:
             return
-        if self.has_image:
-            if self.hovered:
-                self.sprite.color = self.hover_tint
-            else:
-                self.sprite.color = self.normal_tint
-            self.sprite.draw()
+
+        cx = self.x + self.width // 2
+        cy = self.y + self.height // 2
+
+        if self.has_image and self.texture:
+            tint_color = self.hover_tint if self.hovered else self.normal_tint
+
+            arcade.draw_texture_rect(
+                self.texture,
+                arcade.LRBT(self.x, self.x + self.width, self.y, self.y + self.height),
+                color=tint_color
+            )
+
         else:
-            color = self.hover_color if self.hovered else self.normal_color
-            arcade.draw_rectangle_filled(self.x + self.width//2, self.y + self.height//2,
-                                         self.width, self.height, color)
-            arcade.draw_rectangle_outline(self.x + self.width//2, self.y + self.height//2,
-                                          self.width, self.height, arcade.color.WHITE, 2)
+            # Dibujar rectángulo simple
+            color_rect = self.hover_color if self.hovered else self.normal_color
+
+            arcade.draw_rect_filled(arcade.XYWH(
+                cx, cy, self.width, self.height), color_rect
+            )
+
+            arcade.draw_rect_outline(arcade.XYWH(
+                cx, cy, self.width, self.height), arcade.color.WHITE, 2
+            )
+
         if self.text_label:
             self.text_label.draw()
 
@@ -76,6 +95,7 @@ class ImageButton:
 
     def on_mouse_motion(self, x, y, dx, dy):
         self.update(x, y)
+
 
 class HealthBar:
     def __init__(self, x, y, width, height, max_value, current_value,
@@ -98,14 +118,22 @@ class HealthBar:
         self._current_value = max(0, min(self.max_value, value))
 
     def draw(self):
+        cx = self.x + self.width // 2
+        cy = self.y + self.height // 2
+
         # Fondo
-        arcade.draw_rectangle_filled(self.x + self.width//2, self.y + self.height//2,
-                                     self.width, self.height, self.color_vacio)
+        arcade.draw_rect_filled(arcade.XYWH(
+            cx, cy, self.width, self.height), self.color_vacio
+        )
+
         # Relleno
         fill_width = int(self.width * (self._current_value / self.max_value))
         if fill_width > 0:
-            arcade.draw_rectangle_filled(self.x + fill_width//2, self.y + self.height//2,
-                                         fill_width, self.height, self.color_lleno)
+            arcade.draw_rect_filled(arcade.XYWH(
+                self.x + fill_width//2, cy, fill_width, self.height), self.color_lleno
+            )
+
         # Borde
-        arcade.draw_rectangle_outline(self.x + self.width//2, self.y + self.height//2,
-                                      self.width, self.height, arcade.color.WHITE, 1)
+        arcade.draw_rect_outline(arcade.XYWH(
+            cx, cy, self.width, self.height), arcade.color.WHITE, 1
+        )
