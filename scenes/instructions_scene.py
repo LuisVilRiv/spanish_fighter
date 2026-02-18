@@ -1,52 +1,79 @@
+# scenes/instructions_scene.py
 import arcade
 from scenes.base_view import BaseView
 from gui.widgets import ImageButton, RetroLabel
 
+TEXTO_INSTRUCCIONES = """\
+Bienvenido a Batalla Cómica Española.
+
+Es un juego de combate por turnos entre personajes surrealistas españoles.
+
+En tu turno puedes elegir entre cuatro acciones:
+
+  • ATAQUE     — Golpe básico que inflige daño al rival.
+  • DEFENDER   — Reduce el daño recibido en el próximo turno.
+  • CONCENTRAR — Recupera energía para usar habilidades.
+  • HABILIDAD  — Usa una de tus 6 habilidades especiales.
+                 Cada habilidad consume energía.
+
+Gana el primero que reduzca la vida del oponente a cero.
+
+¡Que gane el más español!"""
+
 class InstructionsView(BaseView):
-    """
-    Muestra las instrucciones básicas del juego.
-    """
     def __init__(self, app):
         super().__init__(app)
         self.ui_elements = []
         self._setup_ui()
 
     def _setup_ui(self):
+        self.ui_elements.clear()
         w, h = self.app.width, self.app.height
         self.background_color = (30, 35, 50)
 
-        self.title = RetroLabel("INSTRUCCIONES", w//2, h-50, font_size=32,
-                                color=(255, 220, 150))
-        self.ui_elements.append(self.title)
+        # ── Zonas ─────────────────────────────────────────────────────────
+        HEADER_H = int(h * 0.12)
+        FOOTER_H = int(h * 0.12)
+        BODY_TOP = h - HEADER_H
+        BODY_BOT = FOOTER_H
 
-        texto = """
-Bienvenido a Batalla Cómica Española.
+        # ── Título ────────────────────────────────────────────────────────
+        title_sz = max(22, int(h * 0.045))
+        self.ui_elements.append(RetroLabel(
+            "INSTRUCCIONES",
+            w // 2, h - HEADER_H // 2,
+            font_size=title_sz, color=(255, 220, 150),
+            anchor_x='center', anchor_y='center'
+        ))
 
-Es un juego de combate por turnos entre personajes surrealistas españoles.
+        # ── Texto ─────────────────────────────────────────────────────────
+        margin_x  = int(w * 0.10)
+        text_w    = w - 2 * margin_x
+        text_font = max(13, int(h * 0.022))
 
-- En tu turno, puedes elegir entre ATAQUE, DEFENDER, CONCENTRAR o HABILIDAD.
-- ATAQUE: Golpe básico.
-- DEFENDER: Reduce el daño recibido en el próximo turno.
-- CONCENTRAR: Recupera energía.
-- HABILIDAD: Usa una habilidad especial (cada personaje tiene 6).
+        # Centro vertical del área de texto
+        text_center_y = (BODY_TOP + BODY_BOT) // 2
 
-Gana el que reduzca la vida del oponente a cero.
+        self.ui_elements.append(RetroLabel(
+            TEXTO_INSTRUCCIONES,
+            x=w // 2, y=text_center_y + int((BODY_TOP - BODY_BOT) * 0.38),
+            width=text_w,
+            font_size=text_font, color=(210, 210, 210),
+            anchor_x='center', anchor_y='top',
+            multiline=True
+        ))
 
-¡Que gane el más español!
-        """
-
-        self.instructions_label = RetroLabel(
-            texto, x=w//2, y=h-200, width=700, font_size=16,
-            color=(200, 200, 200), anchor_x='center', multiline=True
-        )
-        self.ui_elements.append(self.instructions_label)
-
-        btn_back = ImageButton(
-            x=w//2 - 100, y=80, width=200, height=50,
-            text="VOLVER", normal_color=(120, 120, 140), hover_color=(150, 150, 180),
+        # ── Botón volver ──────────────────────────────────────────────────
+        btn_w = int(min(w * 0.22, 220))
+        btn_h = int(FOOTER_H * 0.55)
+        self.ui_elements.append(ImageButton(
+            x=w // 2 - btn_w // 2,
+            y=(FOOTER_H - btn_h) // 2,
+            width=btn_w, height=btn_h,
+            text="VOLVER",
+            normal_color=(110, 110, 135), hover_color=(145, 145, 175),
             callback=self.back
-        )
-        self.ui_elements.append(btn_back)
+        ))
 
     def back(self):
         from scenes.menu_scene import MenuView

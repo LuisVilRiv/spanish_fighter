@@ -1,77 +1,101 @@
+# scenes/save_slot_scene.py
 import arcade
 from scenes.base_view import BaseView
 from gui.widgets import ImageButton, RetroLabel
-from sistema_guardado import GestorGuardado, crear_datos_jugador, restaurar_personaje, slot_disponible
+from sistema_guardado import GestorGuardado, crear_datos_jugador, restaurar_personaje
 from personajes import *
-import os
 
 class SaveSlotView(BaseView):
-    """
-    Gestión de slots de guardado. Modo 'new' (crear nueva partida) o 'load' (cargar).
-    Si es 'new', se espera que se pase la clase del personaje seleccionado.
-    """
     def __init__(self, app, mode='new', character_class=None):
         super().__init__(app)
-        self.mode = mode
+        self.mode            = mode
         self.character_class = character_class
-        self.gestor = GestorGuardado()
-        self.ui_elements = []
-        self.slot_buttons = []
+        self.gestor          = GestorGuardado()
+        self.ui_elements     = []
+        self.slot_buttons    = []
         self._setup_ui()
 
     def _setup_ui(self):
+        self.ui_elements.clear()
+        self.slot_buttons.clear()
+
         w, h = self.app.width, self.app.height
         self.background_color = (30, 30, 70)
 
         try:
             self.background = arcade.load_texture('img/fondos/menu.jpg')
-        except:
+        except Exception:
             self.background = None
 
-        titulo = "SELECCIONAR SLOT" if self.mode == 'new' else "CARGAR PARTIDA"
-        self.title = RetroLabel(titulo, w//2, h-70, font_size=32,
-                                color=(255, 255, 0))
+        # ── Zonas ─────────────────────────────────────────────────────────
+        HEADER_H = int(h * 0.12)
+        FOOTER_H = int(h * 0.11)
+        SLOTS_TOP = h - HEADER_H
+        SLOTS_BOT = FOOTER_H
+        SLOTS_H   = SLOTS_TOP - SLOTS_BOT
+
+        # ── Título ────────────────────────────────────────────────────────
+        titulo   = "SELECCIONAR SLOT" if self.mode == 'new' else "CARGAR PARTIDA"
+        title_sz = max(22, int(h * 0.042))
+        self.title = RetroLabel(
+            titulo, w // 2, h - HEADER_H // 2,
+            font_size=title_sz, color=(255, 255, 0),
+            anchor_x='center', anchor_y='center'
+        )
         self.ui_elements.append(self.title)
 
-        slots = self.gestor.listar_partidas()
+        # ── Slots ─────────────────────────────────────────────────────────
+        slots     = self.gestor.listar_partidas()
         slot_data = {}
         for s in slots:
             data = self.gestor.cargar_partida(s)
             if data:
                 slot_data[s] = data
 
-        btn_width = 300
-        btn_height = 150
-        spacing_y = 180
-        start_y = h//2 + 50
+        N_SLOTS  = 3
+        btn_w    = int(min(w * 0.40, 360))
+        btn_h    = int(min(SLOTS_H / (N_SLOTS + 1), 130))
+        btn_h    = max(btn_h, 70)
+        gap_y    = (SLOTS_H - N_SLOTS * btn_h) / (N_SLOTS + 1)
 
-        for slot in range(1, 4):
-            y = start_y - (slot-1) * spacing_y
+        for slot in range(1, N_SLOTS + 1):
+            # Posición vertical distribuida uniformemente
+            center_y = int(SLOTS_BOT + gap_y * (N_SLOTS - slot + 1) + btn_h * (N_SLOTS - slot) + btn_h / 2)
+
             if slot in slot_data:
-                data = slot_data[slot]
-                nombre = data.get('nombre', 'Desconocido')
-                nivel = data.get('nivel', 1)
+                data      = slot_data[slot]
+                nombre    = data.get('nombre', 'Desconocido')
+                nivel     = data.get('nivel', 1)
                 timestamp = data.get('_metadata', {}).get('timestamp', '')
-                texto = f"SLOT {slot}\n{nombre}\nNivel {nivel}\n{timestamp[:10]}"
-                color = (100, 100, 150)
-                hover_color = (150, 150, 200)
+                texto     = f"SLOT {slot}  —  {nombre}  (Nivel {nivel})\n{timestamp[:10]}"
+                color     = (90, 90, 145)
+                hover_c   = (130, 130, 190)
             else:
-                texto = f"SLOT {slot}\nVACÍO"
-                color = (80, 80, 80)
-                hover_color = (120, 120, 120)
+                texto   = f"SLOT {slot}  —  VACÍO"
+                color   = (65, 65, 65)
+                hover_c = (100, 100, 100)
 
+            font_sz = max(13, int(h * 0.022))
             btn = ImageButton(
-                x=w//2 - btn_width//2, y=y - btn_height//2,
-                width=btn_width, height=btn_height,
-                text=texto, normal_color=color, hover_color=hover_color,
+                x=w // 2 - btn_w // 2,
+                y=center_y - btn_h // 2,
+                width=btn_w, height=btn_h,
+                text=texto,
+                normal_color=color, hover_color=hover_c,
                 callback=lambda s=slot: self.select_slot(s)
             )
             self.ui_elements.append(btn)
             self.slot_buttons.append(btn)
 
+        # ── Botón volver ──────────────────────────────────────────────────
+        back_w = int(min(w * 0.22, 210))
+        back_h = int(FOOTER_H * 0.55)
         btn_back = ImageButton(
-            x=w//2 - 100, y=80, width=200, height=50,
-            text="VOLVER", normal_color=(100, 100, 100), hover_color=(150, 150, 150),
+            x=w // 2 - back_w // 2,
+            y=(FOOTER_H - back_h) // 2,
+            width=back_w, height=back_h,
+            text="VOLVER",
+            normal_color=(90, 90, 90), hover_color=(130, 130, 130),
             callback=self.back
         )
         self.ui_elements.append(btn_back)
@@ -80,7 +104,7 @@ class SaveSlotView(BaseView):
         if self.mode == 'new':
             if self.character_class:
                 personaje = self.character_class()
-                datos = crear_datos_jugador(personaje)
+                datos     = crear_datos_jugador(personaje)
                 if self.gestor.guardar_partida(datos, slot):
                     from scenes.combat_scene import CombatView
                     from personajes import Segarro
@@ -88,7 +112,7 @@ class SaveSlotView(BaseView):
                     self.app.push_view(CombatView(self.app, personaje, enemigo))
                 else:
                     print("Error al guardar")
-        else:  # load
+        else:
             datos = self.gestor.cargar_partida(slot)
             if datos:
                 clase_nombre = datos.get('tipo', '').split()[-1]
@@ -96,7 +120,7 @@ class SaveSlotView(BaseView):
                 personaje = None
                 for nombre_clase in personajes_list:
                     if nombre_clase.lower() in clase_nombre.lower():
-                        clase = globals()[nombre_clase]
+                        clase     = globals()[nombre_clase]
                         personaje = clase()
                         restaurar_personaje(personaje, datos)
                         break
@@ -117,11 +141,12 @@ class SaveSlotView(BaseView):
     def on_draw(self):
         self.clear()
         if self.background:
-            arcade.draw_texture_rectangle(self.app.width//2, self.app.height//2,
-                                          self.app.width, self.app.height, self.background)
+            arcade.draw_texture_rectangle(
+                self.app.width // 2, self.app.height // 2,
+                self.app.width, self.app.height, self.background
+            )
         else:
             arcade.set_background_color(self.background_color)
-
         for elem in self.ui_elements:
             if hasattr(elem, 'draw'):
                 elem.draw()

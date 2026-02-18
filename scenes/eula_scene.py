@@ -1,3 +1,4 @@
+# scenes/eula_scene.py
 import arcade
 import os
 from scenes.base_view import BaseView
@@ -5,7 +6,7 @@ from gui.widgets import ImageButton, RetroLabel
 from scenes.menu_scene import MenuView
 
 EULA_FILE = "eula_accepted.txt"
-EULA_TEXT = """
+EULA_TEXT = """\
 ACUERDO DE LICENCIA DE USUARIO FINAL (EULA)
 Batalla Cómica Española
 Copyright (c) 2026 Luis Villegas Rivera
@@ -31,83 +32,87 @@ El software se entrega "tal cual", sin garantías de ningún tipo.
 El autor no será responsable de daños derivados de su uso.
 
 Al hacer clic en "Aceptar", usted confirma que ha leído y acepta
-todos los términos y condiciones de esta licencia.
-"""
+todos los términos y condiciones de esta licencia."""
 
 class EulaView(BaseView):
     def __init__(self, app):
         super().__init__(app)
         self.ui_elements = []
-
+        self.background  = None
         try:
             self.background = arcade.load_texture('img/fondos/eula.jpg')
-        except:
-            self.background = None
-
-        self.panel_x = 0
-        self.panel_y = 0
-        self.panel_width = 0
-        self.panel_height = 0
-        self.label = None
-        self.accept_button = None
-        self.reject_button = None
+        except Exception:
+            pass
         self._setup_ui()
 
     def _setup_ui(self):
-        w = self.app.width
-        h = self.app.height
-        margin = 50
-        panel_width = w - 2 * margin
-        panel_height = h - 2 * margin - 100
-        self.panel_x = margin
-        self.panel_y = margin + 80
-        self.panel_width = panel_width
-        self.panel_height = panel_height
+        self.ui_elements.clear()
+        w, h = self.app.width, self.app.height
 
+        # ── Zonas ─────────────────────────────────────────────────────────
+        MARGIN       = int(min(w, h) * 0.04)
+        FOOTER_H     = int(h * 0.12)
+        PANEL_PAD    = int(min(w, h) * 0.025)
+
+        panel_x = MARGIN
+        panel_y = FOOTER_H
+        panel_w = w - 2 * MARGIN
+        panel_h = h - FOOTER_H - MARGIN
+
+        self.panel_rect = (panel_x, panel_y, panel_w, panel_h)
+
+        # ── Texto EULA dentro del panel ───────────────────────────────────
+        text_font = max(11, int(h * 0.018))
         self.label = RetroLabel(
             EULA_TEXT,
-            x=margin + 10, y=h - margin - 20,
-            font_size=14, color=arcade.color.WHITE,
+            x=panel_x + PANEL_PAD,
+            y=panel_y + panel_h - PANEL_PAD,
+            width=panel_w - 2 * PANEL_PAD,
+            font_size=text_font,
+            color=arcade.color.WHITE,
             anchor_x='left', anchor_y='top',
-            width=panel_width - 20, multiline=True
+            multiline=True
         )
 
-        btn_width = 120
-        btn_height = 40
-        btn_y = margin
+        # ── Botones centrados en el pie ───────────────────────────────────
+        btn_w   = int(min(w * 0.16, 155))
+        btn_h   = int(FOOTER_H * 0.55)
+        btn_gap = int(w * 0.030)
+        btn_y   = (FOOTER_H - btn_h) // 2
+
         self.accept_button = ImageButton(
-            x=w // 2 - btn_width - 10, y=btn_y,
-            width=btn_width, height=btn_height,
-            image_path='img/botones/aceptar.png',
-            hover_tint=(150, 255, 150),
+            x=w // 2 - btn_w - btn_gap // 2,
+            y=btn_y,
+            width=btn_w, height=btn_h,
+            text="ACEPTAR",
+            normal_color=(0, 130, 0), hover_color=(0, 180, 0),
             callback=self.accept
         )
         self.reject_button = ImageButton(
-            x=w // 2 + 10, y=btn_y,
-            width=btn_width, height=btn_height,
-            image_path='img/botones/volver.png',
-            hover_tint=(255, 150, 150),
+            x=w // 2 + btn_gap // 2,
+            y=btn_y,
+            width=btn_w, height=btn_h,
+            text="RECHAZAR",
+            normal_color=(130, 0, 0), hover_color=(180, 0, 0),
             callback=self.reject
         )
         self.ui_elements = [self.accept_button, self.reject_button]
 
-    def on_show(self):
-        pass
-
     def on_draw(self):
         self.clear()
+        w, h = self.app.width, self.app.height
+
         if self.background:
-            arcade.draw_texture_rect(
-                self.background,
-                arcade.LRBT(0, self.app.width, 0, self.app.height)
+            arcade.draw_texture_rectangle(
+                w // 2, h // 2, w, h, self.background
             )
         else:
-            self.clear(arcade.types.Color(30, 70, 30, 255))
+            arcade.draw_rect_filled(arcade.XYWH(w // 2, h // 2, w, h), (30, 70, 30))
 
-        arcade.draw_rect_filled(
-            arcade.LBWH(self.panel_x, self.panel_y, self.panel_width, self.panel_height),
-            arcade.types.Color(0, 0, 0, 180)
-        )
+        px, py, pw, ph = self.panel_rect
+        arcade.draw_rect_filled(arcade.LBWH(px, py, pw, ph), (0, 0, 0, 190))
+        arcade.draw_rect_outline(arcade.LBWH(px, py, pw, ph), (120, 180, 120, 200), border_width=2)
+
         self.label.draw()
         for btn in self.ui_elements:
             btn.draw()

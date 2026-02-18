@@ -1,3 +1,4 @@
+# scenes/rival_select_scene.py
 import arcade
 from scenes.base_view import BaseView
 from gui.widgets import ImageButton, RetroLabel
@@ -13,47 +14,82 @@ class RivalSelectView(BaseView):
         self._setup_ui()
 
     def _setup_ui(self):
+        self.ui_elements.clear()
         w, h = self.app.width, self.app.height
-        self.background_color = (50,40,60)
-        self.title = RetroLabel("SELECCIONA TU RIVAL", w//2, h-60,
-                                font_size=32, color=(255,200,150))
+        self.background_color = (50, 40, 60)
 
+        # ── Zonas fijas ───────────────────────────────────────────────────
+        TITLE_H     = int(h * 0.10)
+        FOOTER_H    = int(h * 0.12)
+        GRID_TOP    = h - TITLE_H
+        GRID_BOTTOM = FOOTER_H
+        GRID_H      = GRID_TOP - GRID_BOTTOM
+
+        # ── Título ────────────────────────────────────────────────────────
+        font_size = max(18, int(h * 0.038))
+        self.title = RetroLabel(
+            "SELECCIONA TU RIVAL",
+            w // 2, h - TITLE_H // 2,
+            font_size=font_size, color=(255, 200, 150),
+            anchor_x='center', anchor_y='center'
+        )
+        self.ui_elements.append(self.title)
+
+        # ── Cuadrícula ────────────────────────────────────────────────────
         cols = 4
-        btn_w, btn_h = 120, 120
-        spacing_x = (w - cols*btn_w) // (cols+1)
-        start_x = spacing_x
-        start_y = h - 150
-        spacing_y = 150
+        n    = len(personajes_list)
+        rows = (n + cols - 1) // cols
+
+        slot_w   = w / cols
+        slot_h   = GRID_H / (rows + 0.5)
+        btn_size = int(min(slot_w, slot_h) * 0.62)
+        btn_size = max(btn_size, 60)
+
+        label_h  = int(h * 0.022)
+        gap_lbl  = int(h * 0.010)
+
+        grid_w   = cols * slot_w
+        offset_x = (w - grid_w) / 2 + slot_w / 2
+
+        total_content_h = rows * slot_h
+        grid_top_y = GRID_BOTTOM + (GRID_H + total_content_h) / 2 - slot_h / 2
 
         for i, clase_nombre in enumerate(personajes_list):
-            clase = globals()[clase_nombre]
+            clase     = globals()[clase_nombre]
             instancia = clase()
-            nombre_archivo = clase_nombre.lower() + '.png'
-            ruta_icono = f'img/personajes/{nombre_archivo}'
-            col = i % cols
+            ruta_icono = f'img/personajes/{clase_nombre.lower()}.png'
+
+            col  = i % cols
             fila = i // cols
-            x = start_x + col*(btn_w + spacing_x)
-            y = start_y - fila*spacing_y
+            cx   = offset_x + col * slot_w
+            cy   = grid_top_y - fila * slot_h
 
             btn = ImageButton(
-                x=x, y=y-btn_h,
-                width=btn_w, height=btn_h,
+                x=int(cx - btn_size // 2), y=int(cy - btn_size // 2),
+                width=btn_size, height=btn_size,
                 image_path=ruta_icono,
-                hover_tint=(220,220,220),
+                hover_tint=(220, 220, 220),
                 callback=lambda c=clase: self.select_rival(c)
             )
             self.ui_elements.append(btn)
 
             label = RetroLabel(
                 instancia.nombre[:12],
-                x=x + btn_w//2, y=y-20,
-                font_size=12
+                x=int(cx), y=int(cy - btn_size // 2 - gap_lbl),
+                font_size=max(9, label_h),
+                anchor_x='center', anchor_y='top'
             )
             self.ui_elements.append(label)
 
+        # ── Botón volver ──────────────────────────────────────────────────
+        btn_back_w = int(min(w * 0.22, 220))
+        btn_back_h = int(FOOTER_H * 0.55)
         btn_back = ImageButton(
-            x=w//2-100, y=50, width=200, height=50,
-            text="VOLVER", normal_color=(120,120,140), hover_color=(150,150,180),
+            x=w // 2 - btn_back_w // 2,
+            y=(FOOTER_H - btn_back_h) // 2,
+            width=btn_back_w, height=btn_back_h,
+            text="VOLVER",
+            normal_color=(120, 120, 140), hover_color=(150, 150, 180),
             callback=self.back
         )
         self.ui_elements.append(btn_back)
@@ -61,7 +97,6 @@ class RivalSelectView(BaseView):
     def on_draw(self):
         self.clear()
         arcade.set_background_color(self.background_color)
-        self.title.draw()
         for elem in self.ui_elements:
             if hasattr(elem, 'draw'):
                 elem.draw()

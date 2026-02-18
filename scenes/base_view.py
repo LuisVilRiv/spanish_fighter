@@ -1,18 +1,17 @@
+# scenes/base_view.py (sin cambios, pero se recomienda agregar on_resize en todas las subclases)
 import arcade
 
 class BaseView(arcade.View):
     def __init__(self, app):
         super().__init__()
         self.app = app
-        self.ui_elements = []          # Lista de elementos interactivos (botones)
-        self.static_elements = []      # Lista de sprites / elementos que no requieren update
+        self.ui_elements = []
+        self.static_elements = []
 
     def on_show(self):
-        """Se llama cuando la vista se vuelve activa."""
         pass
 
     def on_hide(self):
-        """Se llama cuando la vista se abandona."""
         pass
 
     def on_draw(self):
@@ -27,7 +26,6 @@ class BaseView(arcade.View):
                 elem.on_mouse_press(x, y, button, modifiers)
 
     def on_mouse_motion(self, x, y, dx, dy):
-        # Por defecto, notificar a todos los elementos de UI
         for elem in self.ui_elements:
             if hasattr(elem, 'on_mouse_motion'):
                 elem.on_mouse_motion(x, y, dx, dy)
