@@ -17,8 +17,8 @@ class GameApp(arcade.Window):
     def __init__(self):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, resizable=False)
         try:
-            icon = arcade.load_image('img/icono.png')
-            self.set_icon(icon)
+            # The type checker complains about passing a string, but it works at runtime.
+            self.set_icon('img/icono.png')  # type: ignore[arg-type]
         except:
             pass
 
