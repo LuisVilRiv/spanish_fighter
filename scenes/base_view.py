@@ -27,6 +27,7 @@ class BaseView(arcade.View):
                 elem.on_mouse_press(x, y, button, modifiers)
 
     def on_mouse_motion(self, x, y, dx, dy):
+        # Por defecto, notificar a todos los elementos de UI
         for elem in self.ui_elements:
             if hasattr(elem, 'on_mouse_motion'):
                 elem.on_mouse_motion(x, y, dx, dy)

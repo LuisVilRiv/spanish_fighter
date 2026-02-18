@@ -15,12 +15,10 @@ class InstructionsView(BaseView):
         w, h = self.app.width, self.app.height
         self.background_color = (30, 35, 50)
 
-        # Título
         self.title = RetroLabel("INSTRUCCIONES", w//2, h-50, font_size=32,
                                 color=(255, 220, 150))
         self.ui_elements.append(self.title)
 
-        # Texto de instrucciones
         texto = """
 Bienvenido a Batalla Cómica Española.
 
@@ -43,7 +41,6 @@ Gana el que reduzca la vida del oponente a cero.
         )
         self.ui_elements.append(self.instructions_label)
 
-        # Botón volver
         btn_back = ImageButton(
             x=w//2 - 100, y=80, width=200, height=50,
             text="VOLVER", normal_color=(120, 120, 140), hover_color=(150, 150, 180),
@@ -52,21 +49,18 @@ Gana el que reduzca la vida del oponente a cero.
         self.ui_elements.append(btn_back)
 
     def back(self):
-        self.app.pop_view()
+        from scenes.menu_scene import MenuView
+        self.app.goto_view(MenuView(self.app))
 
     def on_draw(self):
         self.clear()
         arcade.set_background_color(self.background_color)
-
         for elem in self.ui_elements:
             if hasattr(elem, 'draw'):
                 elem.draw()
 
     def on_mouse_motion(self, x, y, dx, dy):
         super().on_mouse_motion(x, y, dx, dy)
-        for btn in self.ui_elements:
-            if hasattr(btn, 'on_mouse_motion'):
-                btn.on_mouse_motion(x, y, dx, dy)
 
     def on_mouse_press(self, x, y, button, modifiers):
         super().on_mouse_press(x, y, button, modifiers)

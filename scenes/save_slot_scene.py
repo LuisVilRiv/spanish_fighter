@@ -23,19 +23,16 @@ class SaveSlotView(BaseView):
         w, h = self.app.width, self.app.height
         self.background_color = (30, 30, 70)
 
-        # Fondo con textura si existe
         try:
             self.background = arcade.load_texture('img/fondos/menu.jpg')
         except:
             self.background = None
 
-        # Título
         titulo = "SELECCIONAR SLOT" if self.mode == 'new' else "CARGAR PARTIDA"
         self.title = RetroLabel(titulo, w//2, h-70, font_size=32,
                                 color=(255, 255, 0))
         self.ui_elements.append(self.title)
 
-        # Cargar info de slots existentes
         slots = self.gestor.listar_partidas()
         slot_data = {}
         for s in slots:
@@ -43,7 +40,6 @@ class SaveSlotView(BaseView):
             if data:
                 slot_data[s] = data
 
-        # Crear botones para slots 1,2,3
         btn_width = 300
         btn_height = 150
         spacing_y = 180
@@ -73,7 +69,6 @@ class SaveSlotView(BaseView):
             self.ui_elements.append(btn)
             self.slot_buttons.append(btn)
 
-        # Botón volver
         btn_back = ImageButton(
             x=w//2 - 100, y=80, width=200, height=50,
             text="VOLVER", normal_color=(100, 100, 100), hover_color=(150, 150, 150),
@@ -87,7 +82,6 @@ class SaveSlotView(BaseView):
                 personaje = self.character_class()
                 datos = crear_datos_jugador(personaje)
                 if self.gestor.guardar_partida(datos, slot):
-                    # Ir a combate con ese personaje (enemigo de prueba)
                     from scenes.combat_scene import CombatView
                     from personajes import Segarro
                     enemigo = Segarro()
@@ -97,8 +91,7 @@ class SaveSlotView(BaseView):
         else:  # load
             datos = self.gestor.cargar_partida(slot)
             if datos:
-                # Reconstruir personaje
-                clase_nombre = datos.get('tipo', '').split()[-1]  # truco simple
+                clase_nombre = datos.get('tipo', '').split()[-1]
                 from personajes import __all__ as personajes_list
                 personaje = None
                 for nombre_clase in personajes_list:
@@ -118,7 +111,8 @@ class SaveSlotView(BaseView):
                 print("No se pudo cargar la partida")
 
     def back(self):
-        self.app.pop_view()
+        from scenes.menu_scene import MenuView
+        self.app.goto_view(MenuView(self.app))
 
     def on_draw(self):
         self.clear()
@@ -134,9 +128,6 @@ class SaveSlotView(BaseView):
 
     def on_mouse_motion(self, x, y, dx, dy):
         super().on_mouse_motion(x, y, dx, dy)
-        for btn in self.ui_elements:
-            if hasattr(btn, 'on_mouse_motion'):
-                btn.on_mouse_motion(x, y, dx, dy)
 
     def on_mouse_press(self, x, y, button, modifiers):
         super().on_mouse_press(x, y, button, modifiers)

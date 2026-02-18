@@ -22,7 +22,6 @@ class CombatView(BaseView):
         self._setup_ui()
 
     def _setup_ui(self):
-        # Limpiar listas anteriores
         self.ui_elements = []
         self.habilidad_buttons = []
         self.postcombate_buttons = []
@@ -32,7 +31,6 @@ class CombatView(BaseView):
         w, h = self.app.width, self.app.height
         self.background_color = (30, 35, 50)
 
-        # Sprites de personajes
         sprite_size = 120
         self.jugador_x = int(w * 0.2)
         self.enemigo_x = int(w * 0.8) - sprite_size
@@ -60,7 +58,6 @@ class CombatView(BaseView):
         except:
             self.sprite_enemigo = None
 
-        # Nombres
         self.lbl_jugador = RetroLabel(self.jugador.nombre,
                                       x=self.jugador_x + sprite_size//2,
                                       y=y_combat + sprite_size + 10,
@@ -71,7 +68,6 @@ class CombatView(BaseView):
                                       font_size=16, anchor_x='center')
         self.ui_elements.extend([self.lbl_jugador, self.lbl_enemigo])
 
-        # Barras de vida y energía
         bar_w, bar_h = 220, 20
         self.vida_bar_j = HealthBar(
             x=self.jugador_x - 10, y=y_combat - 40, width=bar_w, height=bar_h,
@@ -96,7 +92,6 @@ class CombatView(BaseView):
         self.static_elements = [self.vida_bar_j, self.vida_bar_e,
                                 self.energia_bar_j, self.energia_bar_e]
 
-        # Indicador de turno
         self.turn_indicator = RetroLabel(
             "TU TURNO" if self.turno_jugador else "TURNO DEL RIVAL",
             x=w//2, y=h-100, font_size=24,
@@ -104,7 +99,6 @@ class CombatView(BaseView):
         )
         self.ui_elements.append(self.turn_indicator)
 
-        # Botones principales
         btn_y = 80
         btn_spacing = 230
         start_x = (w - 3*btn_spacing)//2
@@ -132,10 +126,8 @@ class CombatView(BaseView):
         self.ui_elements.extend([self.btn_ataque, self.btn_defender,
                                  self.btn_concentrar, self.btn_habilidad])
 
-        # Botones de habilidades
         self._crear_botones_habilidad()
 
-        # Botones postcombate (inicialmente invisibles)
         self.btn_revancha = ImageButton(
             x=w//2 - 300, y=btn_y, width=200, height=50,
             text="REVANCHA", normal_color=(0, 150, 0), hover_color=(0, 200, 0),
@@ -156,7 +148,6 @@ class CombatView(BaseView):
             btn.visible = False
             self.ui_elements.append(btn)
 
-        # Área de mensajes
         msg_y = btn_y + 90
         msg_height = 100
         self.msg_rect = (50, msg_y, w-100, msg_height)
@@ -285,12 +276,10 @@ class CombatView(BaseView):
             resultado_final = self.combate.obtener_resultado_final()
             self.lbl_mensaje.text = resultado_final.mensaje_final
             self.turno_jugador = False
-            # Ocultar botones de combate y habilidades
             for btn in [self.btn_ataque, self.btn_defender, self.btn_concentrar, self.btn_habilidad]:
                 btn.visible = False
             for btn in self.habilidad_buttons:
                 btn.visible = False
-            # Mostrar botones postcombate
             for btn in self.postcombate_buttons:
                 btn.visible = True
             self.turn_indicator.text = "COMBATE FINALIZADO"
@@ -318,7 +307,6 @@ class CombatView(BaseView):
                 btn.on_mouse_motion(x, y, dx, dy)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        # Procesar todos los botones; ellos gestionan su visibilidad
         for btn in self.habilidad_buttons:
             btn.on_mouse_press(x, y, button, modifiers)
         for elem in self.ui_elements:
@@ -331,7 +319,11 @@ class CombatView(BaseView):
         self.app.goto_view(CombatView(self.app, nuevo_jugador, nuevo_enemigo))
 
     def ver_historial(self):
-        self.app.push_view(HistorialView(self.app, self.combate.historial))
+        # Pasamos callback para que el botón VOLVER del historial regrese al menú
+        def volver_de_historial():
+            from scenes.menu_scene import MenuView
+            self.app.goto_view(MenuView(self.app))
+        self.app.push_view(HistorialView(self.app, self.combate.historial, on_back=volver_de_historial))
 
     def volver_menu(self):
         from scenes.menu_scene import MenuView

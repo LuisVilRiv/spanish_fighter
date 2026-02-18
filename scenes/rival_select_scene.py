@@ -26,8 +26,6 @@ class RivalSelectView(BaseView):
         spacing_y = 150
 
         for i, clase_nombre in enumerate(personajes_list):
-            # Opcional: excluir al mismo personaje
-            # if clase_nombre == self.player_class.__name__: continue
             clase = globals()[clase_nombre]
             instancia = clase()
             nombre_archivo = clase_nombre.lower() + '.png'
@@ -70,9 +68,9 @@ class RivalSelectView(BaseView):
 
     def on_mouse_motion(self, x, y, dx, dy):
         super().on_mouse_motion(x, y, dx, dy)
-        for elem in self.ui_elements:
-            if hasattr(elem, 'on_mouse_motion'):
-                elem.on_mouse_motion(x, y, dx, dy)
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        super().on_mouse_press(x, y, button, modifiers)
 
     def select_rival(self, rival_class):
         jugador = self.player_class()
@@ -80,7 +78,8 @@ class RivalSelectView(BaseView):
         self.app.push_view(CombatView(self.app, jugador, enemigo))
 
     def back(self):
-        self.app.pop_view()
+        from scenes.character_select_scene import CharacterSelectView
+        self.app.goto_view(CharacterSelectView(self.app))
 
     def on_resize(self, width, height):
         self._setup_ui()

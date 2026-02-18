@@ -35,7 +35,7 @@ class CharacterSelectView(BaseView):
             y = start_y - fila*spacing_y
 
             btn = ImageButton(
-                x=x, y=y-btn_h,  # ajuste para que la base sea y
+                x=x, y=y-btn_h,
                 width=btn_w, height=btn_h,
                 image_path=ruta_icono,
                 hover_tint=(220,220,220),
@@ -43,15 +43,13 @@ class CharacterSelectView(BaseView):
             )
             self.ui_elements.append(btn)
 
-            # Etiqueta con nombre
             label = RetroLabel(
                 instancia.nombre[:12],
                 x=x + btn_w//2, y=y-20,
                 font_size=12
             )
-            self.ui_elements.append(label)  # no interactivo, solo se dibuja
+            self.ui_elements.append(label)
 
-        # Botón volver
         btn_back = ImageButton(
             x=w//2-100, y=50, width=200, height=50,
             text="VOLVER", normal_color=(120,120,140), hover_color=(150,150,180),
@@ -68,15 +66,16 @@ class CharacterSelectView(BaseView):
 
     def on_mouse_motion(self, x, y, dx, dy):
         super().on_mouse_motion(x, y, dx, dy)
-        for elem in self.ui_elements:
-            if hasattr(elem, 'on_mouse_motion'):
-                elem.on_mouse_motion(x, y, dx, dy)
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        super().on_mouse_press(x, y, button, modifiers)
 
     def select_character(self, clase):
         self.app.push_view(RivalSelectView(self.app, player_class=clase))
 
     def back(self):
-        self.app.pop_view()
+        from scenes.menu_scene import MenuView
+        self.app.goto_view(MenuView(self.app))
 
     def on_resize(self, width, height):
         self._setup_ui()

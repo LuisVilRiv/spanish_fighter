@@ -59,8 +59,6 @@ class MenuView(BaseView):
 
     def on_mouse_motion(self, x, y, dx, dy):
         super().on_mouse_motion(x, y, dx, dy)
-        for btn in self.ui_elements:
-            btn.on_mouse_motion(x, y, dx, dy)
 
     def new_game(self):
         self.app.push_view(CharacterSelectView(self.app))

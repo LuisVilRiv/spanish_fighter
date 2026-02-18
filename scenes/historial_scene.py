@@ -3,12 +3,12 @@ from scenes.base_view import BaseView
 from gui.widgets import ImageButton, RetroLabel
 
 class HistorialView(BaseView):
-    def __init__(self, app, historial):
+    def __init__(self, app, historial, on_back=None):
         super().__init__(app)
         self.historial = historial
+        self.on_back_callback = on_back  # callback opcional para volver a la vista anterior
         self.current_page = 0
         self.ui_elements = []
-        self.botones_navegacion = []  # Lista específica para los botones
         self._setup_ui()
 
     def _setup_ui(self):
@@ -18,7 +18,6 @@ class HistorialView(BaseView):
         self.title = RetroLabel("HISTORIAL DEL COMBATE", w//2, h-50, font_size=32, color=(255, 220, 150))
         self.ui_elements.append(self.title)
 
-        # Área de texto
         self.text_label = RetroLabel(
             self._get_page_text(),
             x=50, y=h-150, width=w-100, font_size=12,
@@ -26,7 +25,6 @@ class HistorialView(BaseView):
         )
         self.ui_elements.append(self.text_label)
 
-        # Botones de navegación
         btn_prev = ImageButton(
             x=w//2 - 200, y=80, width=150, height=50,
             text="ANTERIOR", normal_color=(100, 100, 120), hover_color=(130, 130, 150),
@@ -42,8 +40,7 @@ class HistorialView(BaseView):
             text="VOLVER", normal_color=(120, 120, 140), hover_color=(150, 150, 180),
             callback=self.back
         )
-        self.botones_navegacion = [btn_prev, btn_next, btn_back]
-        self.ui_elements.extend(self.botones_navegacion)
+        self.ui_elements.extend([btn_prev, btn_next, btn_back])
 
     def _get_page_text(self):
         turnos_por_pagina = 5
@@ -76,18 +73,19 @@ class HistorialView(BaseView):
         if self.current_page > 0:
             self.current_page -= 1
             self.text_label.text = self._get_page_text()
-            print("Página anterior")  # Depuración
 
     def next_page(self):
         total_paginas = (len(self.historial) + 4) // 5
         if self.current_page < total_paginas - 1:
             self.current_page += 1
             self.text_label.text = self._get_page_text()
-            print("Página siguiente")  # Depuración
 
     def back(self):
-        print("Volver")  # Depuración
-        self.app.pop_view()
+        if self.on_back_callback:
+            self.on_back_callback()
+        else:
+            from scenes.menu_scene import MenuView
+            self.app.goto_view(MenuView(self.app))
 
     def on_draw(self):
         self.clear()
@@ -99,8 +97,4 @@ class HistorialView(BaseView):
         super().on_mouse_motion(x, y, dx, dy)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        # Procesar primero los botones de navegación
-        for btn in self.botones_navegacion:
-            btn.on_mouse_press(x, y, button, modifiers)
-        # También procesar otros elementos (títulos, etc.) a través de la clase base
         super().on_mouse_press(x, y, button, modifiers)
