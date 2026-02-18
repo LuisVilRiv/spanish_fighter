@@ -91,29 +91,21 @@ class CharactersInfoView(BaseView):
         personaje    = clase()
         desc         = clase.descripcion()
 
-        # ── Puntero de colocación vertical (empieza en la parte superior del contenido)
-        # Repartir el espacio de contenido en secciones proporcionales:
-        #   sprite 22% | nombre+tipo 14% | descripción 20% | stats 22% | habilidades 22%
-        ct  = self.content_top
-        ch  = self.content_height
+        ct = self.content_top     # y más alta disponible
+        cb = self.content_bottom  # y más baja disponible
+        ch = ct - cb              # altura total del área de contenido
 
-        # Sprite
-        sprite_h = int(ch * 0.22)
-        sprite_y = ct - sprite_h // 2
-        try:
-            tex = arcade.load_texture(f'img/personajes/{clase_nombre.lower()}.png')
-            sz  = min(sprite_h, int(w * 0.15))
-            self.sprite = arcade.Sprite(tex,
-                center_x=w // 2,
-                center_y=sprite_y
-            )
-            self.sprite.width  = sz
-            self.sprite.height = sz
-            self.sprite_list.append(self.sprite)
-        except Exception:
-            self.sprite = None
+        # ── Dividir el área en 6 bandas proporcionales ────────────────────
+        # sprite | nombre | tipo | descripción | stats | habilidades
+        FRACS = [0.20, 0.10, 0.08, 0.16, 0.18, 0.28]
+        # Calcular los bordes superiores de cada banda
+        tops = []
+        y = ct
+        for f in FRACS:
+            tops.append(y)
+            y -= int(ch * f)
 
-        # Contador de personaje (esquina, pequeño)
+        # ── Contador esquina ──────────────────────────────────────────────
         self.ui_elements.append(RetroLabel(
             f"{self.current_index + 1} / {len(personajes_list)}",
             x=w - 20, y=ct,
@@ -122,94 +114,109 @@ class CharactersInfoView(BaseView):
             anchor_x='right', anchor_y='top'
         ))
 
-        # Nombre
-        nombre_y = ct - int(ch * 0.22) - int(ch * 0.03)
-        name_size = max(16, int(h * 0.032))
+        # ── Banda 0: Sprite ───────────────────────────────────────────────
+        band_h_0 = int(ch * FRACS[0])
+        sprite_sz = int(min(band_h_0 * 0.85, w * 0.14))
+        sprite_cy = tops[0] - band_h_0 // 2
+        try:
+            tex = arcade.load_texture(f'img/personajes/{clase_nombre.lower()}.png')
+            self.sprite = arcade.Sprite(tex, center_x=w // 2, center_y=sprite_cy)
+            self.sprite.width  = sprite_sz
+            self.sprite.height = sprite_sz
+            self.sprite_list.append(self.sprite)
+        except Exception:
+            self.sprite = None
+
+        # ── Banda 1: Nombre ───────────────────────────────────────────────
+        name_sz = max(15, int(ch * FRACS[1] * 0.55))
         self.ui_elements.append(RetroLabel(
             personaje.nombre,
-            w // 2, nombre_y,
-            font_size=name_size, color=(255, 255, 200),
-            anchor_x='center', anchor_y='top'
+            w // 2, tops[1] - int(ch * FRACS[1] * 0.25),
+            font_size=name_sz, color=(255, 255, 200),
+            anchor_x='center', anchor_y='center'
         ))
 
-        # Tipo
-        tipo_y = nombre_y - int(h * 0.045)
-        tipo_size = max(12, int(h * 0.022))
+        # ── Banda 2: Tipo ─────────────────────────────────────────────────
+        tipo_sz = max(11, int(ch * FRACS[2] * 0.55))
         self.ui_elements.append(RetroLabel(
             personaje.tipo,
-            w // 2, tipo_y,
-            font_size=tipo_size, color=(180, 220, 255),
-            anchor_x='center', anchor_y='top'
+            w // 2, tops[2] - int(ch * FRACS[2] * 0.35),
+            font_size=tipo_sz, color=(180, 220, 255),
+            anchor_x='center', anchor_y='center'
         ))
 
-        # Separador visual (descripción)
-        desc_y    = tipo_y - int(h * 0.032)
-        desc_size = max(11, int(h * 0.019))
-        desc_w    = int(w * 0.65)
+        # ── Banda 3: Descripción ──────────────────────────────────────────
+        desc_sz = max(10, int(ch * FRACS[3] * 0.22))
+        desc_w  = int(w * 0.68)
         self.ui_elements.append(RetroLabel(
             desc,
-            x=w // 2, y=desc_y,
+            x=w // 2, y=tops[3],
             width=desc_w,
-            font_size=desc_size, color=(170, 170, 170),
+            font_size=desc_sz, color=(170, 170, 170),
             anchor_x='center', anchor_y='top',
             multiline=True
         ))
 
-        # ── Estadísticas: dos columnas ────────────────────────────────────
-        stats_y    = desc_y - int(ch * 0.22)
-        stat_size  = max(11, int(h * 0.020))
-        stat_gap_y = int(h * 0.030)
-        col_offset = int(w * 0.12)
-
-        stats_left = [
-            f"❤  Vida:      {personaje.vida_maxima}",
-            f"⚔  Ataque:    {personaje.ataque_base}",
-            f"🛡  Defensa:   {personaje.defensa_base}",
+        # ── Banda 4: Estadísticas en dos columnas ─────────────────────────
+        band_h_4  = int(ch * FRACS[4])
+        stat_sz   = max(10, int(band_h_4 * 0.18))
+        stats_all = [
+            f"Vida: {personaje.vida_maxima}",
+            f"Ataque: {personaje.ataque_base}",
+            f"Defensa: {personaje.defensa_base}",
+            f"Velocidad: {personaje.velocidad_base}",
+            f"Energía: {personaje.energia_maxima}",
         ]
-        stats_right = [
-            f"💨  Velocidad: {personaje.velocidad_base}",
-            f"⚡  Energía:   {personaje.energia_maxima}",
-        ]
+        n_stats  = len(stats_all)
+        n_left   = (n_stats + 1) // 2
+        left_stats  = stats_all[:n_left]
+        right_stats = stats_all[n_left:]
+        stat_gap = band_h_4 / (max(n_left, len(right_stats)) + 1)
+        col_x    = int(w * 0.14)
 
-        for j, stat in enumerate(stats_left):
+        for j, stat in enumerate(left_stats):
+            sy = tops[4] - stat_gap * (j + 0.7)
             self.ui_elements.append(RetroLabel(
-                stat,
-                x=w // 2 - col_offset, y=stats_y - j * stat_gap_y,
-                font_size=stat_size, color=(210, 210, 150),
-                anchor_x='right', anchor_y='top'
+                stat, x=w // 2 - col_x, y=int(sy),
+                font_size=stat_sz, color=(210, 210, 150),
+                anchor_x='right', anchor_y='center'
             ))
-        for j, stat in enumerate(stats_right):
+        for j, stat in enumerate(right_stats):
+            sy = tops[4] - stat_gap * (j + 0.7)
             self.ui_elements.append(RetroLabel(
-                stat,
-                x=w // 2 + col_offset, y=stats_y - j * stat_gap_y,
-                font_size=stat_size, color=(210, 210, 150),
-                anchor_x='left', anchor_y='top'
+                stat, x=w // 2 + col_x, y=int(sy),
+                font_size=stat_sz, color=(210, 210, 150),
+                anchor_x='left', anchor_y='center'
             ))
 
-        # ── Habilidades ───────────────────────────────────────────────────
-        hab_title_y = stats_y - max(len(stats_left), len(stats_right)) * stat_gap_y - int(h * 0.025)
-        hab_title_size = max(12, int(h * 0.024))
+        # ── Banda 5: Habilidades ──────────────────────────────────────────
+        band_h_5  = int(ch * FRACS[5])
+        n_habs    = len(personaje.habilidades)
+        # Reservar espacio para título + N habilidades
+        slots     = n_habs + 1          # título ocupa 1 slot
+        slot_h    = band_h_5 / (slots + 0.5)
+        hab_sz    = max(9, int(slot_h * 0.40))
+        title_sz  = max(11, int(slot_h * 0.55))
+        hab_w     = int(w * 0.76)
+
+        hab_title_y = tops[5] - slot_h * 0.4
         self.ui_elements.append(RetroLabel(
             "HABILIDADES",
-            w // 2, hab_title_y,
-            font_size=hab_title_size, color=(255, 200, 100),
-            anchor_x='center', anchor_y='top'
+            w // 2, int(hab_title_y),
+            font_size=title_sz, color=(255, 200, 100),
+            anchor_x='center', anchor_y='center'
         ))
 
-        hab_y      = hab_title_y - int(h * 0.038)
-        hab_size   = max(10, int(h * 0.017))
-        hab_gap_y  = int(h * 0.028)
-        hab_w      = int(w * 0.72)
-
         for i, hab in enumerate(personaje.habilidades):
-            texto = f"{i+1}. {hab.nombre}  ({hab.costo_energia}E)  —  {hab.descripcion}"
+            hy    = tops[5] - slot_h * (i + 1.4)
+            texto = f"{i+1}. {hab.nombre} ({hab.costo_energia}E): {hab.descripcion}"
             self.ui_elements.append(RetroLabel(
                 texto,
-                x=w // 2, y=hab_y - i * hab_gap_y,
+                x=w // 2, y=int(hy),
                 width=hab_w,
-                font_size=hab_size, color=(175, 175, 175),
-                anchor_x='center', anchor_y='top',
-                multiline=True
+                font_size=hab_sz, color=(175, 175, 175),
+                anchor_x='center', anchor_y='center',
+                multiline=False
             ))
 
     def prev_character(self):
