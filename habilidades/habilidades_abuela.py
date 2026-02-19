@@ -23,7 +23,7 @@ class CucharonDeMadera(Habilidad):
         daño_base = usuario.ataque
         
         # Extra daño a los que no obedecen
-        if any(tipo in objetivo.tipo for tipo in ["🎮 Amego Segarro", "💅 Choni de Barrio", "🧳 Guiri Turista"]):
+        if any(tipo in objetivo.tipo for tipo in ["� Amego Segarro", "� Choni de Barrio", "� Guiri Turista"]):
             daño_base = int(daño_base * 1.5)
             print(f"{C.ROJO}¡Desobediente! +50% daño{C.RESET}")
         
@@ -88,7 +88,7 @@ class ChismeVenenoso(Habilidad):
         objetivo.defensa = max(5, objetivo.defensa - reduccion)
         
         # Más efectivo contra familiares y conocidos
-        if any(tipo in objetivo.tipo for tipo in ["👵 Abuela Española", "🎮 Amego Segarro"]):
+        if any(tipo in objetivo.tipo for tipo in ["� Abuela Española", "� Amego Segarro"]):
             objetivo.aplicar_estado("avergonzado", duracion=2)
             print(f"{C.ROJO}¡Chisme familiar! Avergüenza al objetivo.{C.RESET}")
         
@@ -143,7 +143,7 @@ class RemedioCasero(Habilidad):
                 estados_eliminados.append(estado)
         
         # Pequeña curación
-        curacion = 10
+        curacion = objetivo.vida_maxima // 12
         vida_curada = objetivo.recibir_curacion(curacion)
         
         print(f"{C.VERDE}¡Agua con limón! Desintoxica y cura {vida_curada}. Estados eliminados: {estados_eliminados}{C.RESET}")
@@ -156,7 +156,7 @@ class RemedioCasero(Habilidad):
         objetivo.ataque = max(5, objetivo.ataque - reduccion)
         
         # Cura 15 de vida
-        vida_curada = objetivo.recibir_curacion(15)
+        vida_curada = objetivo.recibir_curacion(objetivo.vida_maxima // 8)
         
         print(f"{C.AZUL}¡Infusión de manzanilla! Calma al objetivo. Ataque -{reduccion}, Vida +{vida_curada}{C.RESET}")
         return {"exito": True, "remedio": "infusion_manzanilla", "ataque_reducido": reduccion, "curacion": vida_curada}
@@ -183,7 +183,7 @@ class RemedioCasero(Habilidad):
             print(f"{C.VERDE}¡Pañuelo con alcanfor! Cura el resfriado.{C.RESET}")
         else:
             # Curación básica
-            vida_curada = objetivo.recibir_curacion(20)
+            vida_curada = objetivo.recibir_curacion(objetivo.vida_maxima // 7)
             print(f"{C.VERDE}¡Pañuelo con alcanfor! Alivia y cura {vida_curada}.{C.RESET}")
         
         return {"exito": True, "remedio": "panuelo_con_alcanfor"}
@@ -191,11 +191,11 @@ class RemedioCasero(Habilidad):
     def _jeringuilla_de_ajos(self, usuario, objetivo):
         """Jeringuilla de ajos - Remedio extremo"""
         # Daño al enemigo (es desagradable)
-        daño = objetivo.recibir_dano(30, "remedio_casero")
+        daño = objetivo.recibir_dano(usuario.ataque, "remedio_casero")
         
         # Posible curación milagrosa (10%)
         if random.random() < 0.1:
-            vida_curada = objetivo.recibir_curacion(50)
+            vida_curada = objetivo.recibir_curacion(usuario.vida_maxima // 3)
             print(f"{C.VERDE_BRILLANTE}¡JERINGUILLA DE AJOS MILAGROSA! Cura {vida_curada}.{C.RESET}")
         
         print(f"{C.ROJO}¡Jeringuilla de ajos! El olor hace {daño} de daño.{C.RESET}")
@@ -251,7 +251,7 @@ class BufandaDeLana(Habilidad):
     
     def usar(self, usuario, objetivo):
         # Aumenta defensa significativamente - duración 3 turnos
-        aumento_defensa = 20
+        aumento_defensa = max(8, objetivo.defensa // 3)
         objetivo.defensa += aumento_defensa
         # Nota: como es temporal, no se guarda en base; se perderá al terminar combate.
         # Podríamos añadir un estado "bufanda" que expire y restaure defensa, pero es complejo.

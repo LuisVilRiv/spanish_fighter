@@ -3,10 +3,10 @@ El Fatal Torero - Torero con más arte que un museo
 Maestro de la lidia y el valor temerario
 
 Estadísticas:
-- Vida: 85
-- Ataque: 22
-- Defensa: 7
-- Velocidad: 70
+- Vida: 100
+- Ataque: 28
+- Defensa: 12
+- Velocidad: 65
 - Energía: 105
 """
 
@@ -32,11 +32,11 @@ class Torero(Personaje):
     def __init__(self, nombre_personalizado: str = None):
         super().__init__(
             nombre=nombre_personalizado if nombre_personalizado else "El Fatal",
-            tipo="🐂 El Fatal Torero",
-            vida_base=85,
-            ataque_base=22,
-            defensa_base=7,
-            velocidad_base=70,
+            tipo="� El Fatal Torero",
+            vida_base=100,
+            ataque_base=28,
+            defensa_base=12,
+            velocidad_base=65,
             energia_base=105
         )
         
@@ -98,17 +98,17 @@ class Torero(Personaje):
     
     def mostrar_stats(self):
         """Muestra estadísticas con estilo torero."""
-        print(f"\n{C.NEGRITA}{C.ROJO}┌───── EL FATAL TORERO ─────┐{C.RESET}")
+        print(f"\n{C.NEGRITA}{C.ROJO}������ EL FATAL TORERO ������{C.RESET}")
         super().mostrar_stats()
         
         # Mostrar estadísticas especiales
-        print(f"\n{C.AMARILLO}┌───── ESTADÍSTICAS TAUROMÁQUICAS ─────┐{C.RESET}")
-        print(f"{C.CYAN}│ Orejas conseguidas: {self._orejas_conseguidas:3}       │{C.RESET}")
-        print(f"{C.CYAN}│ Cornadas recibidas: {self._cornadas_recibidas:3}       │{C.RESET}")
-        print(f"{C.CYAN}│ Faenas completas: {self._faenas_completas:3}        │{C.RESET}")
-        print(f"{C.CYAN}│ Público entusiasmado: {self._publico_entusiasmado:3}   │{C.RESET}")
-        print(f"{C.CYAN}│ Nivel de arte: {self._arte:3}              │{C.RESET}")
-        print(f"{C.AMARILLO}└──────────────────────────────────────┘{C.RESET}")
+        print(f"\n{C.AMARILLO}������ ESTADÍSTICAS TAUROMÁQUICAS ������{C.RESET}")
+        print(f"{C.CYAN}� Orejas conseguidas: {self._orejas_conseguidas:3}       �{C.RESET}")
+        print(f"{C.CYAN}� Cornadas recibidas: {self._cornadas_recibidas:3}       �{C.RESET}")
+        print(f"{C.CYAN}� Faenas completas: {self._faenas_completas:3}        �{C.RESET}")
+        print(f"{C.CYAN}� Público entusiasmado: {self._publico_entusiasmado:3}   �{C.RESET}")
+        print(f"{C.CYAN}� Nivel de arte: {self._arte:3}              �{C.RESET}")
+        print(f"{C.AMARILLO}����������������������������������������{C.RESET}")
     
     def recibir_dano(self, dano: int, tipo_dano: str = "normal", critico: bool = False) -> int:
         """Recibir daño con modificadores especiales para Torero."""

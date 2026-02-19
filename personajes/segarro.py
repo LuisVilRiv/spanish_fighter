@@ -3,10 +3,10 @@ Amego Segarro - El personaje más español de todos
 Especialista en pedir cosas y tener poca química con el jamón
 
 Estadísticas:
-- Vida: 85
-- Ataque: 70
-- Defensa: 40
-- Velocidad: 65
+- Vida: 90
+- Ataque: 35
+- Defensa: 8
+- Velocidad: 60
 - Energía: 100
 """
 
@@ -30,11 +30,11 @@ class Segarro(Personaje):
     def __init__(self, nombre_personalizado: str = None):
         super().__init__(
             nombre=nombre_personalizado if nombre_personalizado else "Paco 'El Segarrito'",
-            tipo="🎮 Amego Segarro",
-            vida_base=85,
-            ataque_base=70,
-            defensa_base=40,
-            velocidad_base=65,
+            tipo="� Amego Segarro",
+            vida_base=90,
+            ataque_base=35,
+            defensa_base=8,
+            velocidad_base=60,
             energia_base=100
         )
         
@@ -63,5 +63,5 @@ class Segarro(Personaje):
     
     def mostrar_stats(self):
         """Muestra estadísticas con estilo segarro."""
-        print(f"\n{C.NEGRITA}{C.VERDE}┌───── AMEGO SEGARRO ─────┐{C.RESET}")
+        print(f"\n{C.NEGRITA}{C.VERDE}������ AMEGO SEGARRO ������{C.RESET}")
         super().mostrar_stats()

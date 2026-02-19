@@ -87,9 +87,12 @@ class OlesDelPublico(Habilidad):
     
     def usar(self, usuario, objetivo):
         # Aumento de stats por ánimo del público - duración 2 turnos
-        usuario.ataque += 10
-        usuario.defensa += 8
-        usuario.velocidad += 6
+        aum_atk = max(4, usuario.ataque // 4)
+        aum_def = max(3, usuario.defensa // 4)
+        aum_vel = max(3, usuario.velocidad // 6)
+        usuario.ataque += aum_atk
+        usuario.defensa += aum_def
+        usuario.velocidad += aum_vel
         
         # Aumenta arte
         if hasattr(usuario, '_arte'):
@@ -104,10 +107,10 @@ class OlesDelPublico(Habilidad):
             if hasattr(usuario, '_orejas_conseguidas'):
                 usuario._orejas_conseguidas += 1
                 # Beneficio extra por oreja
-                vida_curada = usuario.recibir_curacion(20)
+                vida_curada = usuario.recibir_curacion(usuario.vida_maxima // 7)
                 print(f"{C.AMARILLO}¡OREJA CONSEGUIDA! Vida +{vida_curada}. Orejas: {usuario._orejas_conseguidas}{C.RESET}")
         
-        print(f"{C.VERDE}¡OLÉ! Ataque +10, Defensa +8, Velocidad +6, Arte +15. Público: {getattr(usuario, '_publico_entusiasmado', 0)}{C.RESET}")
+        print(f"{C.VERDE}¡OL�! Ataque +10, Defensa +8, Velocidad +6, Arte +15. Público: {getattr(usuario, '_publico_entusiasmado', 0)}{C.RESET}")
         
         return {
             "exito": True,
@@ -131,8 +134,9 @@ class Capote(Habilidad):
     
     def usar(self, usuario, objetivo):
         # Defensa aumentada significativamente (antes +25, ahora +40)
-        usuario.defensa += 40
-        print(f"{C.AZUL}¡Capote desplegado! Defensa +40{C.RESET}")
+        bonus_capote = max(10, usuario.defensa)
+        usuario.defensa += bonus_capote
+        print(f"{C.AZUL}¡Capote desplegado! Defensa +{bonus_capote}{C.RESET}")
         
         # Estado de defensa
         usuario.aplicar_estado("defendiendo", duracion=1)
@@ -209,7 +213,7 @@ class Faena(Habilidad):
         prob_oreja = arte / 200  # antes /100
         if random.random() < prob_oreja and hasattr(usuario, '_orejas_conseguidas'):
             usuario._orejas_conseguidas += 1
-            vida_curada = usuario.recibir_curacion(25)  # antes 30
+            vida_curada = usuario.recibir_curacion(usuario.vida_maxima // 6)  # relativo
             efectos.append(f"¡Oreja! Vida +{vida_curada}. Total: {usuario._orejas_conseguidas}")
         
         # 4. Registrar faena completa

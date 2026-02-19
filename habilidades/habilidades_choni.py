@@ -23,7 +23,7 @@ class TacónEnElPie(Habilidad):
         daño_base = usuario.ataque
         
         # Extra daño a objetivos "finos" o "educados"
-        if any(tipo in objetivo.tipo for tipo in ["📿 Católica Conservadora", "🎤 Político Prometedor", "✝️ Super Sacerdote"]):
+        if any(tipo in objetivo.tipo for tipo in ["� Católica Conservadora", "� Político Prometedor", "�️ Super Sacerdote"]):
             daño_base = int(daño_base * 1.7)
             print(f"{C.ROJO}¡Le duele a los finos! +70% daño{C.RESET}")
         
@@ -113,7 +113,7 @@ class Uñazo(Habilidad):
         daño_base = usuario.ataque * 2
         
         # Daño extra si el objetivo no tiene protección
-        if objetivo.defensa < 10:
+        if objetivo.defensa < 14:
             daño_base = int(daño_base * 1.4)
             print(f"{C.ROJO}¡Sin protección contra uñas! +40% daño{C.RESET}")
         

@@ -29,9 +29,10 @@ class ArenaEnLosOjos(Habilidad):
         daño = objetivo.recibir_dano(usuario.ataque // 3, "arena")
         
         # Reduce velocidad (se frota los ojos) - duración 1 turno
-        objetivo.velocidad = max(5, objetivo.velocidad - 5)
+        red_vel = max(4, objetivo.velocidad // 8)
+        objetivo.velocidad = max(5, objetivo.velocidad - red_vel)
         
-        print(f"{C.AMARILLO}¡Arena playera! Velocidad -5{C.RESET}")
+        print(f"{C.AMARILLO}¡Arena playera! Velocidad -{red_vel}{C.RESET}")
         
         return {"exito": True, "daño": daño, "cegado": True}
 
@@ -49,8 +50,9 @@ class SurfearOla(Habilidad):
     
     def usar(self, usuario, objetivo):
         # Aumenta velocidad temporalmente - duración 1 turno
-        usuario.velocidad += 20
-        print(f"{C.AZUL}¡Surfeando una ola! Velocidad +20{C.RESET}")
+        aumento_vel = max(8, usuario.velocidad // 5)
+        usuario.velocidad += aumento_vel
+        print(f"{C.AZUL}¡Surfeando una ola! Velocidad +{aumento_vel}{C.RESET}")
         
         # Daño con bonus de velocidad
         daño_base = usuario.ataque + (usuario.velocidad // 10)
@@ -62,8 +64,9 @@ class SurfearOla(Habilidad):
         
         # Posible caída (15%)
         if random.random() < 0.15:
-            usuario.recibir_dano(10, "caida")
-            print(f"{C.ROJO}¡Se cae de la ola! Daño autoinfligido: 10{C.RESET}")
+            daño_caida = max(5, usuario.vida_maxima // 14)
+            usuario.recibir_dano(daño_caida, "caida")
+            print(f"{C.ROJO}¡Se cae de la ola! Daño autoinfligido: {daño_caida}{C.RESET}")
         
         print(f"{C.CYAN}Olas surfeadas: {getattr(usuario, '_olas_surfeadas', 0)}{C.RESET}")
         
@@ -83,7 +86,7 @@ class BronceadoExpress(Habilidad):
     
     def usar(self, usuario, objetivo):
         # Aumenta defensa (piel morena = más dura?) - duración 3 turnos
-        aumento_defensa = 15
+        aumento_defensa = max(4, usuario.defensa // 3)
         usuario.defensa += aumento_defensa
         
         # Posible quemadura (40%) - duración 2 turnos
@@ -94,8 +97,9 @@ class BronceadoExpress(Habilidad):
             print(f"{C.ROJO}¡Demasiado sol! Quemadura solar.{C.RESET}")
         else:
             # Beneficio adicional si no se quema
-            usuario.ataque += 5
-            print(f"{C.VERDE}¡Bronceado perfecto! Ataque +5{C.RESET}")
+            aum_atk = max(2, usuario.ataque // 8)
+            usuario.ataque += aum_atk
+            print(f"{C.VERDE}¡Bronceado perfecto! Ataque +{aum_atk}{C.RESET}")
         
         print(f"{C.AMARILLO}¡Bronceado express! Defensa +{aumento_defensa}{C.RESET}")
         
@@ -184,8 +188,9 @@ class RefrescoAzucarado(Habilidad):
         usuario.energia_actual = min(usuario.energia_maxima, usuario.energia_actual + energia_recuperada)
         
         # Aumento temporal de velocidad (azúcar) - duración 1 turno
-        usuario.velocidad += 10
-        print(f"{C.VERDE}¡Subidón de azúcar! Energía +{energia_recuperada}, Velocidad +10{C.RESET}")
+        aum_vel = max(4, usuario.velocidad // 7)
+        usuario.velocidad += aum_vel
+        print(f"{C.VERDE}¡Subidón de azúcar! Energía +{energia_recuperada}, Velocidad +{aum_vel}{C.RESET}")
         
         # Registrar refresco bebido
         if hasattr(usuario, '_refrescos_bebidos'):

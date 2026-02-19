@@ -108,7 +108,7 @@ class FotoConBebe(Habilidad):
         
         # Posible llanto del bebé (25% de daño al objetivo)
         if random.random() < 0.25:
-            daño = objetivo.recibir_dano(15, "llanto")
+            daño = objetivo.recibir_dano(max(5, usuario.ataque // 4), "llanto")
             print(f"{C.ROJO}¡El bebé llora y molesta al enemigo! Daño: {daño}{C.RESET}")
         
         print(f"{C.VERDE}¡Foto con bebé! Vida +{vida_curada}, Popularidad +20. Fotos: {getattr(usuario, '_fotos_con_bebes', 0)}{C.RESET}")
@@ -197,7 +197,7 @@ class CampanaElectoral(Habilidad):
         self.es_curacion = True  # Cura vida
     
     def usar(self, usuario, objetivo):
-        print(f"{C.VERDE_BRILLANTE}¡{usuario.nombre} lanza una CAMPAÑA ELECTORAL!{C.RESET}")
+        print(f"{C.VERDE_BRILLANTE}¡{usuario.nombre} lanza una CAMPA�A ELECTORAL!{C.RESET}")
         
         # Efectos masivos
         efectos = []
@@ -213,13 +213,16 @@ class CampanaElectoral(Habilidad):
         efectos.append(f"Vida +{vida_curada}")
         
         # 3. Aumento de stats - duración 3 turnos
-        usuario.ataque += 15
-        usuario.defensa += 10
-        usuario.velocidad += 5
-        efectos.append("Ataque +15, Defensa +10, Velocidad +5")
+        aum_atk = max(4, usuario.ataque // 4)
+        aum_def = max(3, usuario.defensa // 4)
+        aum_vel = max(2, usuario.velocidad // 8)
+        usuario.ataque += aum_atk
+        usuario.defensa += aum_def
+        usuario.velocidad += aum_vel
+        efectos.append(f"Ataque +{aum_atk}, Defensa +{aum_def}, Velocidad +{aum_vel}")
         
         # 4. Daño masivo al enemigo (crítica mediática)
-        daño_base = usuario.ataque * 4
+        daño_base = int(usuario.ataque * 2.5)
         daño = objetivo.recibir_dano(daño_base, "mediatico")
         efectos.append(f"Daño mediático: {daño}")
         

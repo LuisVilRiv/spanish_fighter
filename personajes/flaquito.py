@@ -3,10 +3,10 @@ Flaquito Playero - El típico flaco que va a la playa y no se pone moreno
 Especialista en esquivar y sobrevivir con suerte
 
 Estadísticas:
-- Vida: 55
-- Ataque: 8
-- Defensa: 2
-- Velocidad: 75
+- Vida: 85
+- Ataque: 18
+- Defensa: 8
+- Velocidad: 85
 - Energía: 85
 """
 
@@ -32,11 +32,11 @@ class Flaquito(Personaje):
     def __init__(self, nombre_personalizado: str = None):
         super().__init__(
             nombre=nombre_personalizado if nombre_personalizado else "Julián el Desnutrido",
-            tipo="🏖️ Flaquito Playero",
-            vida_base=55,
-            ataque_base=8,
-            defensa_base=2,
-            velocidad_base=75,
+            tipo="��️ Flaquito Playero",
+            vida_base=85,
+            ataque_base=18,
+            defensa_base=8,
+            velocidad_base=85,
             energia_base=85
         )
         
@@ -98,17 +98,17 @@ class Flaquito(Personaje):
     
     def mostrar_stats(self):
         """Muestra estadísticas con estilo flaquito."""
-        print(f"\n{C.NEGRITA}{C.AMARILLO}┌───── FLAQUITO PLAYERO ─────┐{C.RESET}")
+        print(f"\n{C.NEGRITA}{C.AMARILLO}������ FLAQUITO PLAYERO ������{C.RESET}")
         super().mostrar_stats()
         
         # Mostrar estadísticas especiales
-        print(f"\n{C.AMARILLO}┌───── ESTADÍSTICAS PLAYERAS ─────┐{C.RESET}")
-        print(f"{C.CYAN}│ Veces volado: {self._veces_volado:3}            │{C.RESET}")
-        print(f"{C.CYAN}│ Quemaduras solares: {self._quemaduras_solares:3}     │{C.RESET}")
-        print(f"{C.CYAN}│ Refrescos bebidos: {self._refrescos_bebidos:3}      │{C.RESET}")
-        print(f"{C.CYAN}│ Olas surfeadas: {self._olas_surfeadas:3}         │{C.RESET}")
-        print(f"{C.CYAN}│ Suerte: {self._suerte*100:3.0f}%               │{C.RESET}")
-        print(f"{C.AMARILLO}└──────────────────────────────────┘{C.RESET}")
+        print(f"\n{C.AMARILLO}������ ESTADÍSTICAS PLAYERAS ������{C.RESET}")
+        print(f"{C.CYAN}� Veces volado: {self._veces_volado:3}            �{C.RESET}")
+        print(f"{C.CYAN}� Quemaduras solares: {self._quemaduras_solares:3}     �{C.RESET}")
+        print(f"{C.CYAN}� Refrescos bebidos: {self._refrescos_bebidos:3}      �{C.RESET}")
+        print(f"{C.CYAN}� Olas surfeadas: {self._olas_surfeadas:3}         �{C.RESET}")
+        print(f"{C.CYAN}� Suerte: {self._suerte*100:3.0f}%               �{C.RESET}")
+        print(f"{C.AMARILLO}������������������������������������{C.RESET}")
     
     def recibir_dano(self, dano: int, tipo_dano: str = "normal", critico: bool = False) -> int:
         """Recibir daño con modificadores especiales para Flaquito."""

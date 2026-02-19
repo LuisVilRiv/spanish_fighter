@@ -3,10 +3,10 @@ Choni de Barrio - Choni con uñas de 2 metros y mucho carácter
 Especialista en chismes, selfies y actitud
 
 Estadísticas:
-- Vida: 68
-- Ataque: 18
-- Defensa: 5
-- Velocidad: 65
+- Vida: 95
+- Ataque: 26
+- Defensa: 10
+- Velocidad: 70
 - Energía: 100
 """
 
@@ -32,11 +32,11 @@ class Choni(Personaje):
     def __init__(self, nombre_personalizado: str = None):
         super().__init__(
             nombre=nombre_personalizado if nombre_personalizado else "Yenni",
-            tipo="💅 Choni de Barrio",
-            vida_base=68,
-            ataque_base=18,
-            defensa_base=5,
-            velocidad_base=65,
+            tipo="� Choni de Barrio",
+            vida_base=95,
+            ataque_base=26,
+            defensa_base=10,
+            velocidad_base=70,
             energia_base=100
         )
         
@@ -110,24 +110,24 @@ class Choni(Personaje):
     
     def mostrar_stats(self):
         """Muestra estadísticas con estilo choni."""
-        print(f"\n{C.NEGRITA}{C.MAGENTA}┌───── CHONI DE BARRIO ─────┐{C.RESET}")
+        print(f"\n{C.NEGRITA}{C.MAGENTA}������ CHONI DE BARRIO ������{C.RESET}")
         super().mostrar_stats()
         
         # Mostrar estadísticas especiales
-        print(f"\n{C.AMARILLO}┌───── ESTADÍSTICAS CHONIS ─────┐{C.RESET}")
-        print(f"{C.CYAN}│ Selfies tomadas: {self._selfies_tomadas:3}        │{C.RESET}")
-        print(f"{C.CYAN}│ Chismes contados: {self._chismes_contados:3}       │{C.RESET}")
-        print(f"{C.CYAN}│ Uñas rotas: {self._uñas_rotas:3}             │{C.RESET}")
-        print(f"{C.CYAN}│ Fiestas asistidas: {self._fiestas_asistidas:3}     │{C.RESET}")
-        print(f"{C.CYAN}│ Nivel de actitud: {self._actitud:3}          │{C.RESET}")
-        print(f"{C.AMARILLO}└────────────────────────────────┘{C.RESET}")
+        print(f"\n{C.AMARILLO}������ ESTADÍSTICAS CHONIS ������{C.RESET}")
+        print(f"{C.CYAN}� Selfies tomadas: {self._selfies_tomadas:3}        �{C.RESET}")
+        print(f"{C.CYAN}� Chismes contados: {self._chismes_contados:3}       �{C.RESET}")
+        print(f"{C.CYAN}� Uñas rotas: {self._uñas_rotas:3}             �{C.RESET}")
+        print(f"{C.CYAN}� Fiestas asistidas: {self._fiestas_asistidas:3}     �{C.RESET}")
+        print(f"{C.CYAN}� Nivel de actitud: {self._actitud:3}          �{C.RESET}")
+        print(f"{C.AMARILLO}����������������������������������{C.RESET}")
     
     def recibir_dano(self, dano: int, tipo_dano: str = "normal", critico: bool = False) -> int:
         """Recibir daño con modificadores especiales para Choni."""
         # La educación la destruye
         if tipo_dano == "educacion":
             dano = int(dano * 2.0)
-            print(f"{C.ROJO_BRILLANTE}¡LA EDUCACIÓN LA MATA! +100% daño{C.RESET}")
+            print(f"{C.ROJO_BRILLANTE}¡LA EDUCACI�N LA MATA! +100% daño{C.RESET}")
             
             # Pierde actitud
             self._actitud = max(0, self._actitud - 20)

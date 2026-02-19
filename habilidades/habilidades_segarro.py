@@ -1,226 +1,320 @@
 """
-Habilidades específicas del Amego Segarro.
-Cada habilidad refleja la personalidad del segarro español típico.
+Habilidades específicas del Super Sacerdote
+Exorcismos, bendiciones, milagros y castigos divinos
 """
 
 from .habilidad_base import Habilidad
 from utils import Colores as C
 import random
+import time
 
-class DameCartera(Habilidad):
-    """¡Dame la Cartera! - Pide dinero prestado que nunca devolverá"""
+class Exorcismo(Habilidad):
+    """Exorcismo - Expulsa demonios y espíritus malignos"""
     
     def __init__(self):
         super().__init__(
-            nombre="¡Dame la Cartera!",
-            descripcion="Pide dinero prestado que nunca devolverá. Roba energía del enemigo.",
-            costo_energia=20,
+            nombre="Exorcismo",
+            descripcion="Expulsa demonios y espíritus malignos. Daño masivo a impuros.",
+            costo_energia=45,
             tipo="ofensiva"
         )
         self.es_curacion = False
     
     def usar(self, usuario, objetivo):
-        # Daño base
-        dano_base = usuario.ataque // 2
+        print(f"{C.MAGENTA}¡{usuario.nombre} comienza un exorcismo!{C.RESET}")
+        time.sleep(0.5)
         
-        # Más efectivo contra amigos
-        if objetivo.tipo in ["🎮 Amego Segarro", "🏖️ Flaquito Playero"]:
-            dano_base *= 2
-            print(f"{C.ROJO}¡Se aprovecha de la confianza! x2{C.RESET}")
+        # Daño base
+        dano_base = int(usuario.ataque * 1.5)
+        
+        # Efectivo contra demonios, segarros y pecadores
+        es_impuro = any(tipo in objetivo.tipo for tipo in ["� Amego Segarro", "� Choni de Barrio", "� Guiri Turista"])
+        es_demonio = "demonio" in objetivo.tipo.lower() if hasattr(objetivo, 'tipo') else False
+        
+        if es_impuro or es_demonio:
+            dano_base = int(dano_base * 2)
+            print(f"{C.ROJO_BRILLANTE}¡EXORCISMO SUPEREFECTIVO! x2 daño{C.RESET}")
+            
+            # Expulsión forzada (30%) - duración 1 turno
+            if random.random() < 0.3:
+                objetivo.aplicar_estado("exorcizado", duracion=1)
+                print(f"{C.VERDE_BRILLANTE}¡{objetivo.nombre} ha sido exorcizado!{C.RESET}")
         
         # Aplicar daño
-        daño = objetivo.recibir_dano(dano_base, "verborrea")
+        dano = objetivo.recibir_dano(dano_base, "divino")
         
-        # 30% de robar energía
-        if random.random() < 0.3:
-            energia_robada = min(15, objetivo.energia_actual)
-            objetivo.energia_actual -= energia_robada
-            usuario.energia_actual = min(usuario.energia_maxima, usuario.energia_actual + energia_robada)
-            print(f"{C.AMARILLO}¡Robó {energia_robada} de energía!{C.RESET}")
+        # Registrar exorcismo
+        if hasattr(usuario, '_exorcismos_realizados'):
+            usuario._exorcismos_realizados += 1
         
-        return {"exito": True, "daño": daño, "tipo": "verborrea"}
+        # Ganar fe
+        if hasattr(usuario, '_fe_acumulada'):
+            usuario._fe_acumulada = min(getattr(usuario, '_fe_maxima', 300), 
+                                       usuario._fe_acumulada + 20)
+        
+        return {
+            "exito": True,
+            "dano": dano,
+            "tipo": "divino",
+            "exorcismo": True,
+            "mensaje": f"Exorciza a {objetivo.nombre}"
+        }
 
-class PedirSigarrito(Habilidad):
-    """¿Me Das un Siga? - Pide un cigarro y reduce la defensa del enemigo"""
+class BendicionDivina(Habilidad):
+    """Bendición Divina - Bendice y cura aliados"""
     
     def __init__(self):
         super().__init__(
-            nombre="¿Me Das un Siga?",
-            descripcion="Pide un cigarro y reduce la defensa del enemigo.",
-            costo_energia=15,
-            tipo="estado"
-        )
-        self.es_curacion = False
-    
-    def usar(self, usuario, objetivo):
-        # Reduce defensa - duración 2 turnos
-        reduccion = max(5, objetivo.defensa // 4)
-        objetivo.defensa = max(10, objetivo.defensa - reduccion)
-        
-        # Pequeño daño
-        daño = objetivo.recibir_dano(usuario.ataque // 4, "verborrea")
-        
-        print(f"{C.AMARILLO}{objetivo.nombre} baja la guardia. Defensa -{reduccion}{C.RESET}")
-        
-        return {"exito": True, "daño": daño, "efecto": "defensa_reducida"}
-
-class SuperMeca(Habilidad):
-    """Super Meca del Móvil - Se pone a jugar al móvil y se cura"""
-    
-    def __init__(self):
-        super().__init__(
-            nombre="Super Meca del Móvil",
-            descripcion="Se pone a jugar al móvil y se cura.",
-            costo_energia=25,
+            nombre="Bendición Divina",
+            descripcion="Bendice y cura a aliados. Aumenta defensa y cura estados.",
+            costo_energia=35,
             tipo="defensiva"
         )
         self.es_curacion = True
     
     def usar(self, usuario, objetivo):
-        # Curación
+        print(f"{C.AZUL}¡{usuario.nombre} pronuncia una bendición divina!{C.RESET}")
+        time.sleep(0.5)
+        
+        # Curación poderosa
         curacion = usuario.vida_maxima // 3
-        vida_curada = usuario.recibir_curacion(curacion)
+        vida_curada = objetivo.recibir_curacion(curacion)
         
-        # Regenera energía extra
-        usuario.energia_actual = min(usuario.energia_maxima, usuario.energia_actual + 10)
+        # Aumenta defensa - duración 2 turnos
+        aumento_defensa = max(4, objetivo.defensa // 4)
+        objetivo.defensa += aumento_defensa
         
-        print(f"{C.VERDE}¡Se cura {vida_curada} HP jugando a Dulce Aplastamiento!{C.RESET}")
+        # Cura estados negativos
+        estados_curables = ["quemado", "envenenado", "maldito", "poseído"]
+        estados_eliminados = []
         
-        return {"exito": True, "curacion": vida_curada}
+        for estado in estados_curables:
+            if estado in objetivo.estados:
+                objetivo.eliminar_estado(estado)
+                estados_eliminados.append(estado)
+        
+        print(f"{C.VERDE}¡Bendición! Defensa +{aumento_defensa}{C.RESET}")
+        
+        if estados_eliminados:
+            print(f"{C.VERDE}Estados curados: {', '.join(estados_eliminados)}{C.RESET}")
+        
+        # Ganar fe
+        if hasattr(usuario, '_fe_acumulada'):
+            usuario._fe_acumulada = min(getattr(usuario, '_fe_maxima', 300), 
+                                       usuario._fe_acumulada + 15)
+        
+        return {
+            "exito": True,
+            "curacion": vida_curada,
+            "defensa_aumentada": aumento_defensa,
+            "estados_eliminados": estados_eliminados,
+            "tipo": "defensiva",
+            "mensaje": f"Bendición divina cura a {objetivo.nombre}"
+        }
 
-class CriticaConstructiva(Habilidad):
-    """Crítica 'Constructiva' - Critica todo lo que haces mal (BALANCEADA)"""
+class AguaBenditaAvanzada(Habilidad):
+    """Agua Bendita Avanzada - Agua bendita potenciada por la fe"""
     
     def __init__(self):
         super().__init__(
-            nombre="Crítica 'Constructiva'",
-            descripcion="Critica todo lo que haces mal. Daño extra contra perfeccionistas.",
+            nombre="Agua Bendita Avanzada",
+            descripcion="Agua bendita potenciada por la fe. Purifica y daña.",
             costo_energia=30,
             tipo="ofensiva"
         )
         self.es_curacion = False
     
     def usar(self, usuario, objetivo):
+        print(f"{C.CYAN}¡{usuario.nombre} lanza agua bendita avanzada!{C.RESET}")
+        time.sleep(0.5)
+        
+        # Daño base aumentado por fe
         dano_base = usuario.ataque
         
-        # Daño extra si el objetivo es perfeccionista (reducido de 1.5 a 1.3)
-        if objetivo.tipo in ["💪 PutoAmo del Gym", "📿 Católica Conservadora"]:
-            dano_base = int(dano_base * 1.3)
-            print(f"{C.ROJO}¡Le duele en el ego! +30%{C.RESET}")
+        if hasattr(usuario, '_fe_acumulada'):
+            bonus_fe = 1 + (usuario._fe_acumulada / 200)  # Hasta 50% extra
+            dano_base = int(dano_base * bonus_fe)
+            print(f"{C.VERDE}¡Potenciado por la fe! +{int((bonus_fe-1)*100)}%{C.RESET}")
         
-        daño = objetivo.recibir_dano(dano_base, "verborrea")
+        # Super efectivo contra impuros
+        if "impuro" in objetivo.tipo.lower() or "Segarro" in objetivo.tipo:
+            dano_base *= 2
+            print(f"{C.ROJO}¡Purificación total! x2 daño{C.RESET}")
         
-        # Posible confusión (menor probabilidad) - duración 1 turno
-        if random.random() < 0.3:  # antes 0.4
-            objetivo.aplicar_estado("confundido", duracion=1)
-            print(f"{C.MAGENTA}¡{objetivo.nombre} se ha confundido!{C.RESET}")
+        dano = objetivo.recibir_dano(dano_base, "divino")
         
-        return {"exito": True, "daño": daño}
+        # Purifica estados - duración 2 turnos
+        if random.random() < 0.5:
+            objetivo.aplicar_estado("purificado", duracion=2)
+            print(f"{C.VERDE}¡{objetivo.nombre} ha sido purificado!{C.RESET}")
+        
+        return {
+            "exito": True,
+            "dano": dano,
+            "tipo": "divino",
+            "purificado": True,
+            "mensaje": f"Agua bendita avanzada purifica a {objetivo.nombre}"
+        }
 
-class ToPelma(Habilidad):
-    """To Pelma - Te cuenta su vida aburrida por horas"""
+class SermonEterno(Habilidad):
+    """Sermón Eterno - Sermón tan largo que cansa al enemigo"""
     
     def __init__(self):
         super().__init__(
-            nombre="To Pelma",
-            descripcion="Te cuenta su vida aburrida por horas. Reduce velocidad y ataque.",
-            costo_energia=35,
+            nombre="Sermón Eterno",
+            descripcion="Sermón tan largo que cansa al enemigo. Reduce velocidad y ataque.",
+            costo_energia=25,
             tipo="estado"
         )
         self.es_curacion = False
     
     def usar(self, usuario, objetivo):
-        # Reduce velocidad y ataque - duración 2 turnos
-        objetivo.velocidad = max(10, objetivo.velocidad - 15)
-        objetivo.ataque = max(10, objetivo.ataque - 10)
+        print(f"{C.MAGENTA}¡{usuario.nombre} comienza un sermón eterno...{C.RESET}")
+        time.sleep(1)
         
-        # Daño psicológico
-        daño = objetivo.recibir_dano(usuario.ataque // 3, "aburrimiento")
+        # Reducciones - duración 2 turnos
+        reduccion_velocidad = max(10, objetivo.velocidad // 3)
+        reduccion_ataque = max(5, objetivo.ataque // 4)
         
-        print(f"{C.CYAN}¡{objetivo.nombre} está aburridísimo! Velocidad y ataque reducidos{C.RESET}")
+        objetivo.velocidad = max(5, objetivo.velocidad - reduccion_velocidad)
+        objetivo.ataque = max(5, objetivo.ataque - reduccion_ataque)
         
-        return {"exito": True, "daño": daño, "efecto": "estadisticas_reducidas"}
+        # Posible sueño (40%) - duración 1-2 turnos
+        if random.random() < 0.4:
+            duracion = random.randint(1, 2)
+            objetivo.aplicar_estado("dormido", duracion=duracion)
+            print(f"{C.CYAN}¡{objetivo.nombre} se ha dormido por {duracion} turno(s)!{C.RESET}")
+        
+        print(f"{C.AMARILLO}Velocidad -{reduccion_velocidad}, Ataque -{reduccion_ataque}{C.RESET}")
+        
+        return {
+            "exito": True,
+            "velocidad_reducida": reduccion_velocidad,
+            "ataque_reducido": reduccion_ataque,
+            "tipo": "estado",
+            "mensaje": f"Sermón eterno agota a {objetivo.nombre}"
+        }
 
-class PedirFavor(Habilidad):
-    """Pedir Favor - Pide un favor imposible y obtiene efectos aleatorios"""
+class MilagroDivino(Habilidad):
+    """Milagro Divino - Realiza un milagro con efectos aleatorios"""
     
     def __init__(self):
         super().__init__(
-            nombre="Pedir Favor",
-            descripcion="Pide un favor imposible. Efecto aleatorio que puede ser bueno o malo.",
-            costo_energia=40,
+            nombre="Milagro Divino",
+            descripcion="Realiza un milagro. Efectos aleatorios potentes.",
+            costo_energia=60,
             tipo="especial"
+        )
+        self.es_curacion = True
+    
+    def usar(self, usuario, objetivo):
+        print(f"{C.VERDE_BRILLANTE}¡{usuario.nombre} invoca un milagro divino!{C.RESET}")
+        time.sleep(1)
+        
+        milagros = [
+            self._milagro_curacion,
+            self._milagro_dano,
+            self._milagro_resurreccion,
+            self._milagro_bendicion,
+            self._milagro_castigo,
+            self._milagro_transfiguracion
+        ]
+        
+        milagro = random.choice(milagros)
+        return milagro(usuario, objetivo)
+    
+    def _milagro_curacion(self, usuario, objetivo):
+        curacion = usuario.vida_maxima // 2
+        vida_curada = usuario.recibir_curacion(curacion)
+        estados_antes = usuario.estados.copy()
+        usuario.estados = [estado for estado in usuario.estados if estado not in ["quemado", "envenenado", "maldito"]]
+        print(f"{C.VERDE_BRILLANTE}¡MILAGRO DE CURACI�N! Vida +{vida_curada}{C.RESET}")
+        if hasattr(usuario, '_milagros_realizados'):
+            usuario._milagros_realizados += 1
+        return {"exito": True, "milagro": "curacion", "curacion": vida_curada, "estados_eliminados": estados_antes, "mensaje": "Milagro de curación realizado"}
+    
+    def _milagro_dano(self, usuario, objetivo):
+        dano = objetivo.vida_maxima // 3
+        dano_recibido = objetivo.recibir_dano(dano, "divino")
+        print(f"{C.ROJO_BRILLANTE}¡MILAGRO DE DESTRUCCI�N! Daño: {dano_recibido}{C.RESET}")
+        return {"exito": True, "milagro": "dano", "dano": dano_recibido, "mensaje": "Milagro de destrucción realizado"}
+    
+    def _milagro_resurreccion(self, usuario, objetivo):
+        if not usuario.esta_vivo():
+            usuario.vida_actual = usuario.vida_maxima // 2
+            print(f"{C.VERDE_BRILLANTE}¡RESURRECCI�N MILAGROSA! Revive con mitad de vida.{C.RESET}")
+        if random.random() < 0.5:
+            curacion = objetivo.vida_maxima // 4
+            vida_curada = objetivo.recibir_curacion(curacion)
+        return {"exito": True, "milagro": "resurreccion", "resucitado": not usuario.esta_vivo(), "mensaje": "Milagro de resurrección"}
+    
+    def _milagro_bendicion(self, usuario, objetivo):
+        aum_atk = max(5, usuario.ataque // 3)
+        aum_def = max(4, usuario.defensa // 3)
+        aum_vel = max(3, usuario.velocidad // 6)
+        usuario.ataque += aum_atk
+        usuario.defensa += aum_def
+        usuario.velocidad += aum_vel
+        print(f"{C.AZUL}¡MILAGRO DE BENDICI�N! Stats mejoradas.{C.RESET}")
+        return {"exito": True, "milagro": "bendicion", "ataque_mejorado": 20, "defensa_mejorada": 15, "velocidad_mejorada": 10, "mensaje": "Bendición potenciada aplicada"}
+    
+    def _milagro_castigo(self, usuario, objetivo):
+        objetivo.ataque = max(1, objetivo.ataque // 2)
+        objetivo.defensa = max(1, objetivo.defensa // 2)
+        objetivo.velocidad = max(1, objetivo.velocidad // 2)
+        print(f"{C.ROJO}¡MILAGRO DE CASTIGO! Todas las stats del enemigo reducidas a la mitad.{C.RESET}")
+        return {"exito": True, "milagro": "castigo", "mensaje": "Castigo divino aplicado"}
+    
+    def _milagro_transfiguracion(self, usuario, objetivo):
+        objetivo.aplicar_estado("transfigurado", duracion=2)
+        if random.random() < 0.33:
+            objetivo.aplicar_estado("sin_habilidades", duracion=2)
+            print(f"{C.MAGENTA}¡TRANSFIGURACI�N! {objetivo.nombre} pierde temporalmente sus habilidades.{C.RESET}")
+        return {"exito": True, "milagro": "transfiguracion", "mensaje": "Transfiguración divina realizada"}
+
+class CastigoDivino(Habilidad):
+    """Castigo Divino - Castigo de Dios sobre los pecadores (BALANCEADO)"""
+    
+    def __init__(self):
+        super().__init__(
+            nombre="Castigo Divino",
+            descripcion="Castigo de Dios sobre los pecadores. Daño masivo y efectos duraderos.",
+            costo_energia=70,
+            tipo="ofensiva"
         )
         self.es_curacion = False
     
     def usar(self, usuario, objetivo):
-        print(f"{C.MAGENTA}{usuario.nombre} pide un favor completamente imposible...{C.RESET}")
+        print(f"{C.ROJO_BRILLANTE}¡{usuario.nombre} invoca el CASTIGO DIVINO!{C.RESET}")
+        time.sleep(0.5)
         
-        efectos = [
-            self._efecto_curar,
-            self._efecto_danar,
-            self._efecto_robar_energia,
-            self._efecto_confundir,
-            self._efecto_mejorar_stats,
-            self._efecto_empeorar_stats,
-            self._efecto_nada,
-            self._efecto_critico
-        ]
+        # Daño masivo reducido de *3 a *2.2
+        dano_base = int(usuario.ataque * 2.2)
         
-        efecto_elegido = random.choice(efectos)
-        return efecto_elegido(usuario, objetivo)
-    
-    def _efecto_curar(self, usuario, objetivo):
-        curacion = usuario.vida_maxima // 4
-        vida_curada = usuario.recibir_curacion(curacion)
-        mensaje = f"¡El favor funciona! {usuario.nombre} se cura {vida_curada}."
-        print(f"{C.VERDE}{mensaje}{C.RESET}")
-        return {"exito": True, "efecto": "curar", "curacion": vida_curada}
-    
-    def _efecto_danar(self, usuario, objetivo):
-        daño = objetivo.vida_maxima // 5
-        daño_recibido = objetivo.recibir_dano(daño, "verborrea")
-        mensaje = f"¡El favor sale mal! {objetivo.nombre} pierde {daño_recibido} de vida."
-        print(f"{C.ROJO}{mensaje}{C.RESET}")
-        return {"exito": True, "efecto": "dañar", "daño": daño_recibido}
-    
-    def _efecto_robar_energia(self, usuario, objetivo):
-        energia_robada = min(30, objetivo.energia_actual)
-        objetivo.energia_actual -= energia_robada
-        usuario.energia_actual = min(usuario.energia_maxima, usuario.energia_actual + energia_robada)
-        mensaje = f"¡Consigue energía! Roba {energia_robada} de {objetivo.nombre}."
-        print(f"{C.AZUL}{mensaje}{C.RESET}")
-        return {"exito": True, "efecto": "robar_energia", "energia_robada": energia_robada}
-    
-    def _efecto_confundir(self, usuario, objetivo):
-        objetivo.aplicar_estado("confundido", duracion=2)
-        mensaje = f"¡Confusión total! {objetivo.nombre} no sabe qué hacer."
-        print(f"{C.MAGENTA}{mensaje}{C.RESET}")
-        return {"exito": True, "efecto": "confundir", "estado_aplicado": "confundido"}
-    
-    def _efecto_mejorar_stats(self, usuario, objetivo):
-        usuario.ataque += 10
-        usuario.defensa += 5
-        usuario.velocidad += 5
-        mensaje = f"¡Auto-mejora! Ataque +10, Defensa +5, Velocidad +5."
-        print(f"{C.VERDE}{mensaje}{C.RESET}")
-        return {"exito": True, "efecto": "mejorar_stats"}
-    
-    def _efecto_empeorar_stats(self, usuario, objetivo):
-        usuario.ataque = max(10, usuario.ataque - 5)
-        usuario.defensa = max(5, usuario.defensa - 3)
-        mensaje = f"¡Le sale el tiro por la culata! Ataque -5, Defensa -3."
-        print(f"{C.ROJO}{mensaje}{C.RESET}")
-        return {"exito": True, "efecto": "empeorar_stats"}
-    
-    def _efecto_nada(self, usuario, objetivo):
-        mensaje = "Nadie le hace caso. No pasa nada."
-        print(f"{C.AMARILLO}{mensaje}{C.RESET}")
-        return {"exito": True, "efecto": "nada"}
-    
-    def _efecto_critico(self, usuario, objetivo):
-        daño = objetivo.vida_maxima // 3
-        daño_recibido = objetivo.recibir_dano(daño, "verborrea")
-        mensaje = f"¡FAVOR ÉPICO! {objetivo.nombre} pierde {daño_recibido} de vida."
-        print(f"{C.ROJO_BRILLANTE}{mensaje}{C.RESET}")
-        return {"exito": True, "efecto": "critico", "daño": daño_recibido}
+        # Extra contra pecadores (reducido de *2 a *1.5)
+        es_pecador = any(tipo in objetivo.tipo for tipo in ["� Amego Segarro", "� Choni de Barrio", "� Político Prometedor"])
+        if es_pecador:
+            dano_base = int(dano_base * 1.5)
+            print(f"{C.ROJO_BRILLANTE}¡PECADOR DETECTADO! +50% daño{C.RESET}")
+        
+        dano = objetivo.recibir_dano(dano_base, "divino")
+        
+        # Efectos secundarios - menos probables y de menor duración
+        efectos = ["maldito", "paralizado", "confundido", "debilitado"]
+        for efecto in efectos:
+            if random.random() < 0.2:  # antes 0.3
+                objetivo.aplicar_estado(efecto, duracion=1)  # antes 2
+        
+        # Reducción permanente de stats (menos probable y menos severa)
+        if random.random() < 0.05:  # antes 0.1
+            objetivo.ataque = max(1, objetivo.ataque - max(2, objetivo.ataque // 8))
+            objetivo.defensa = max(1, objetivo.defensa - max(1, objetivo.defensa // 8))
+            print(f"{C.ROJO}¡Reducción permanente leve de stats!{C.RESET}")
+        
+        return {
+            "exito": True,
+            "dano": dano,
+            "tipo": "divino",
+            "castigo": True,
+            "mensaje": f"{usuario.nombre} invoca el CASTIGO DIVINO contra {objetivo.nombre}!"
+        }

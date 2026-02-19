@@ -3,10 +3,10 @@ Barrendero Filósofo - Barre las calles mientras piensa en el sentido de la vida
 Sabio callejero con perspectiva única
 
 Estadísticas:
-- Vida: 72
-- Ataque: 14
-- Defensa: 6
-- Velocidad: 50
+- Vida: 105
+- Ataque: 20
+- Defensa: 15
+- Velocidad: 55
 - Energía: 95
 """
 
@@ -32,11 +32,11 @@ class Barrendero(Personaje):
     def __init__(self, nombre_personalizado: str = None):
         super().__init__(
             nombre=nombre_personalizado if nombre_personalizado else "Don Limpio",
-            tipo="🧹 Barrendero Filósofo",
-            vida_base=72,
-            ataque_base=14,
-            defensa_base=6,
-            velocidad_base=50,
+            tipo="� Barrendero Filósofo",
+            vida_base=105,
+            ataque_base=20,
+            defensa_base=15,
+            velocidad_base=55,
             energia_base=95
         )
         
@@ -110,17 +110,17 @@ class Barrendero(Personaje):
     
     def mostrar_stats(self):
         """Muestra estadísticas con estilo barrendero."""
-        print(f"\n{C.NEGRITA}{C.VERDE}┌───── BARRENDERO FILÓSOFO ─────┐{C.RESET}")
+        print(f"\n{C.NEGRITA}{C.VERDE}������ BARRENDERO FIL�SOFO ������{C.RESET}")
         super().mostrar_stats()
         
         # Mostrar estadísticas especiales
-        print(f"\n{C.AMARILLO}┌───── ESTADÍSTICAS FILOSÓFICAS ─────┐{C.RESET}")
-        print(f"{C.CYAN}│ Calles barridas: {self._calles_barridas:3}         │{C.RESET}")
-        print(f"{C.CYAN}│ Reflexiones profundas: {self._reflexiones_profundas:3}   │{C.RESET}")
-        print(f"{C.CYAN}│ Cosas encontradas: {self._cosas_encontradas:3}       │{C.RESET}")
-        print(f"{C.CYAN}│ Consejos dados: {self._consejos_dados:3}          │{C.RESET}")
-        print(f"{C.CYAN}│ Nivel de sabiduría: {self._sabiduria:3}        │{C.RESET}")
-        print(f"{C.AMARILLO}└────────────────────────────────────┘{C.RESET}")
+        print(f"\n{C.AMARILLO}������ ESTADÍSTICAS FILOS�FICAS ������{C.RESET}")
+        print(f"{C.CYAN}� Calles barridas: {self._calles_barridas:3}         �{C.RESET}")
+        print(f"{C.CYAN}� Reflexiones profundas: {self._reflexiones_profundas:3}   �{C.RESET}")
+        print(f"{C.CYAN}� Cosas encontradas: {self._cosas_encontradas:3}       �{C.RESET}")
+        print(f"{C.CYAN}� Consejos dados: {self._consejos_dados:3}          �{C.RESET}")
+        print(f"{C.CYAN}� Nivel de sabiduría: {self._sabiduria:3}        �{C.RESET}")
+        print(f"{C.AMARILLO}��������������������������������������{C.RESET}")
     
     def recibir_dano(self, dano: int, tipo_dano: str = "normal", critico: bool = False) -> int:
         """Recibir daño con modificadores especiales para Barrendero."""
@@ -218,6 +218,6 @@ class Barrendero(Personaje):
         # Posible iluminación (5%)
         if random.random() < 0.05:
             self.estados.append("iluminado")
-            print(f"{C.VERDE_BRILLANTE}¡ILUMINACIÓN! Estado: iluminado{C.RESET}")
+            print(f"{C.VERDE_BRILLANTE}¡ILUMINACI�N! Estado: iluminado{C.RESET}")
         
         print(f"{C.CYAN}¡Meditación callejera! Vida +25, Energía +30, Sabiduría +15{C.RESET}")

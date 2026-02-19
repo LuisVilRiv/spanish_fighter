@@ -3,10 +3,10 @@ Político Prometedor - Político que promete cosas y no cumple ninguna
 Maestro de la mentira y el discurso vacío
 
 Estadísticas:
-- Vida: 65
-- Ataque: 16
-- Defensa: 4
-- Velocidad: 60
+- Vida: 100
+- Ataque: 18
+- Defensa: 12
+- Velocidad: 65
 - Energía: 95
 """
 
@@ -32,11 +32,11 @@ class Politico(Personaje):
     def __init__(self, nombre_personalizado: str = None):
         super().__init__(
             nombre=nombre_personalizado if nombre_personalizado else "Don Prometelo Todo",
-            tipo="🎤 Político Prometedor",
-            vida_base=65,
-            ataque_base=16,
-            defensa_base=4,
-            velocidad_base=60,
+            tipo="� Político Prometedor",
+            vida_base=100,
+            ataque_base=18,
+            defensa_base=12,
+            velocidad_base=65,
             energia_base=95
         )
         
@@ -98,17 +98,17 @@ class Politico(Personaje):
     
     def mostrar_stats(self):
         """Muestra estadísticas con estilo político."""
-        print(f"\n{C.NEGRITA}{C.AMARILLO}┌───── POLÍTICO PROMETEDOR ─────┐{C.RESET}")
+        print(f"\n{C.NEGRITA}{C.AMARILLO}������ POLÍTICO PROMETEDOR ������{C.RESET}")
         super().mostrar_stats()
         
         # Mostrar estadísticas especiales
-        print(f"\n{C.AMARILLO}┌───── ESTADÍSTICAS POLÍTICAS ─────┐{C.RESET}")
-        print(f"{C.CYAN}│ Promesas incumplidas: {self._promesas_incumplidas:3}   │{C.RESET}")
-        print(f"{C.CYAN}│ Discursos vacíos: {self._discursos_vacios:3}       │{C.RESET}")
-        print(f"{C.CYAN}│ Fotos con bebés: {self._fotos_con_bebes:3}        │{C.RESET}")
-        print(f"{C.CYAN}│ Impuestos subidos: {self._impuestos_subidos:3}      │{C.RESET}")
-        print(f"{C.CYAN}│ Popularidad: {self._popularidad:3}            │{C.RESET}")
-        print(f"{C.AMARILLO}└──────────────────────────────────┘{C.RESET}")
+        print(f"\n{C.AMARILLO}������ ESTADÍSTICAS POLÍTICAS ������{C.RESET}")
+        print(f"{C.CYAN}� Promesas incumplidas: {self._promesas_incumplidas:3}   �{C.RESET}")
+        print(f"{C.CYAN}� Discursos vacíos: {self._discursos_vacios:3}       �{C.RESET}")
+        print(f"{C.CYAN}� Fotos con bebés: {self._fotos_con_bebes:3}        �{C.RESET}")
+        print(f"{C.CYAN}� Impuestos subidos: {self._impuestos_subidos:3}      �{C.RESET}")
+        print(f"{C.CYAN}� Popularidad: {self._popularidad:3}            �{C.RESET}")
+        print(f"{C.AMARILLO}������������������������������������{C.RESET}")
     
     def recibir_dano(self, dano: int, tipo_dano: str = "normal", critico: bool = False) -> int:
         """Recibir daño con modificadores especiales para Político."""

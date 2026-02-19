@@ -25,12 +25,13 @@ class RezarRosario(Habilidad):
         vida_curada = usuario.recibir_curacion(curacion)
         
         # Aumenta defensa - duración 2 turnos
-        usuario.defensa += 10
-        print(f"{C.VERDE}¡Defensa aumentada en 10!{C.RESET}")
+        aumento_def = max(4, usuario.defensa // 4)
+        usuario.defensa += aumento_def
+        print(f"{C.VERDE}¡Defensa aumentada en {aumento_def}!{C.RESET}")
         
         # Daño a segarros (les duele lo religioso)
-        if "🎮 Amego Segarro" in objetivo.tipo:
-            dano_extra = objetivo.recibir_dano(20, "religioso")
+        if "� Amego Segarro" in objetivo.tipo:
+            dano_extra = objetivo.recibir_dano(usuario.ataque // 2, "religioso")
             print(f"{C.ROJO}¡El segarro sufre daño extra por blasfemia!{C.RESET}")
         
         return {"exito": True, "curacion": vida_curada, "tipo": "defensiva"}
@@ -51,7 +52,7 @@ class AguaBendita(Habilidad):
         dano_base = usuario.ataque // 2
         
         # Doble daño a segarros y turistas borrachos
-        tipos_impuros = ["🎮 Amego Segarro", "🧳 Guiri Turista", "💅 Choni de Barrio"]
+        tipos_impuros = ["� Amego Segarro", "� Guiri Turista", "� Choni de Barrio"]
         if any(tipo in objetivo.tipo for tipo in tipos_impuros):
             dano_base *= 2
             print(f"{C.ROJO}¡Super efectivo contra impuros! x2{C.RESET}")
@@ -108,7 +109,7 @@ class MiradaJuzgadora(Habilidad):
         objetivo.ataque = max(10, objetivo.ataque - reduccion)
         
         # Más efectivo contra católicos y abuelas
-        if any(tipo in objetivo.tipo for tipo in ["📿 Católica Conservadora", "👵 Abuela Española"]):
+        if any(tipo in objetivo.tipo for tipo in ["� Católica Conservadora", "� Abuela Española"]):
             reduccion *= 2
             print(f"{C.ROJO}¡Se siente muy culpable! x2{C.RESET}")
         
@@ -137,7 +138,7 @@ class ViernesSanto(Habilidad):
         usuario.defensa += 10
         
         # Daño a quien coma jamón (segarros especialmente)
-        if "🎮 Amego Segarro" in objetivo.tipo:
+        if "� Amego Segarro" in objetivo.tipo:
             dano = objetivo.recibir_dano(40, "religioso")
             print(f"{C.ROJO}¡El segarro sufre por comer jamón en Viernes Santo!{C.RESET}")
         else:
@@ -161,7 +162,7 @@ class Excomulgar(Habilidad):
     
     def usar(self, usuario, objetivo):
         # Solo funciona contra no creyentes
-        tipos_creyentes = ["📿 Católica Conservadora", "✝️ Super Sacerdote"]
+        tipos_creyentes = ["� Católica Conservadora", "�️ Super Sacerdote"]
         
         if objetivo.tipo in tipos_creyentes:
             print(f"{C.AMARILLO}¡No puede excomulgar a un creyente!{C.RESET}")

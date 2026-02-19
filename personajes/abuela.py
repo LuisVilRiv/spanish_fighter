@@ -3,10 +3,10 @@ Abuela Española - Tu abuela, la de todos. Te da de comer y te riñe.
 Poder absoluto sobre la familia y la cocina
 
 Estadísticas:
-- Vida: 70
-- Ataque: 20
-- Defensa: 6
-- Velocidad: 45
+- Vida: 110
+- Ataque: 22
+- Defensa: 14
+- Velocidad: 50
 - Energía: 90
 """
 
@@ -32,11 +32,11 @@ class Abuela(Personaje):
     def __init__(self, nombre_personalizado: str = None):
         super().__init__(
             nombre=nombre_personalizado if nombre_personalizado else "Doña Remedios",
-            tipo="👵 Abuela Española",
-            vida_base=70,
-            ataque_base=20,
-            defensa_base=6,
-            velocidad_base=45,
+            tipo="� Abuela Española",
+            vida_base=110,
+            ataque_base=22,
+            defensa_base=14,
+            velocidad_base=50,
             energia_base=90
         )
         
@@ -98,17 +98,17 @@ class Abuela(Personaje):
     
     def mostrar_stats(self):
         """Muestra estadísticas con estilo abuela."""
-        print(f"\n{C.NEGRITA}{C.MAGENTA}┌───── ABUELA ESPAÑOLA ─────┐{C.RESET}")
+        print(f"\n{C.NEGRITA}{C.MAGENTA}������ ABUELA ESPA�OLA ������{C.RESET}")
         super().mostrar_stats()
         
         # Mostrar estadísticas especiales
-        print(f"\n{C.AMARILLO}┌───── ESTADÍSTICAS MATRIARCALES ─────┐{C.RESET}")
-        print(f"{C.CYAN}│ Comidas preparadas: {self._comidas_preparadas:3}        │{C.RESET}")
-        print(f"{C.CYAN}│ Capones dados: {self._capones_dados:3}             │{C.RESET}")
-        print(f"{C.CYAN}│ Consejos dados: {self._consejos_dados:3}            │{C.RESET}")
-        print(f"{C.CYAN}│ Remedios aplicados: {self._remedios_aplicados:3}        │{C.RESET}")
-        print(f"{C.CYAN}│ Autoridad: {self._autoridad:3}                │{C.RESET}")
-        print(f"{C.AMARILLO}└──────────────────────────────────────┘{C.RESET}")
+        print(f"\n{C.AMARILLO}������ ESTADÍSTICAS MATRIARCALES ������{C.RESET}")
+        print(f"{C.CYAN}� Comidas preparadas: {self._comidas_preparadas:3}        �{C.RESET}")
+        print(f"{C.CYAN}� Capones dados: {self._capones_dados:3}             �{C.RESET}")
+        print(f"{C.CYAN}� Consejos dados: {self._consejos_dados:3}            �{C.RESET}")
+        print(f"{C.CYAN}� Remedios aplicados: {self._remedios_aplicados:3}        �{C.RESET}")
+        print(f"{C.CYAN}� Autoridad: {self._autoridad:3}                �{C.RESET}")
+        print(f"{C.AMARILLO}����������������������������������������{C.RESET}")
     
     def recibir_dano(self, dano: int, tipo_dano: str = "normal", critico: bool = False) -> int:
         """Recibir daño con modificadores especiales para Abuela."""

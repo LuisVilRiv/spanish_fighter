@@ -3,10 +3,10 @@ Super Sacerdote - Un cura con más poder que un superhéroe de Marvel
 Especializado en exorcismos y bendiciones
 
 Estadísticas:
-- Vida: 100
-- Ataque: 18
-- Defensa: 10
-- Velocidad: 50
+- Vida: 115
+- Ataque: 16
+- Defensa: 16
+- Velocidad: 55
 - Energía: 120
 """
 
@@ -32,11 +32,11 @@ class Sacerdote(Personaje):
     def __init__(self, nombre_personalizado: str = None):
         super().__init__(
             nombre=nombre_personalizado if nombre_personalizado else "Padre Benito",
-            tipo="✝️ Super Sacerdote",
-            vida_base=100,
-            ataque_base=18,
-            defensa_base=10,
-            velocidad_base=50,
+            tipo="�️ Super Sacerdote",
+            vida_base=115,
+            ataque_base=16,
+            defensa_base=16,
+            velocidad_base=55,
             energia_base=120
         )
         
@@ -84,16 +84,16 @@ class Sacerdote(Personaje):
     
     def mostrar_stats(self):
         """Muestra estadísticas con estilo sacerdote."""
-        print(f"\n{C.NEGRITA}{C.CYAN}┌───── SUPER SACERDOTE ─────┐{C.RESET}")
+        print(f"\n{C.NEGRITA}{C.CYAN}������ SUPER SACERDOTE ������{C.RESET}")
         super().mostrar_stats()
         
         # Mostrar estadísticas especiales
-        print(f"\n{C.AMARILLO}┌───── ESTADÍSTICAS DIVINAS ─────┐{C.RESET}")
-        print(f"{C.CYAN}│ Fe acumulada: {self._fe_acumulada:4}/{self._fe_maxima:<4}          │{C.RESET}")
-        print(f"{C.CYAN}│ Exorcismos: {self._exorcismos_realizados:3}                   │{C.RESET}")
-        print(f"{C.CYAN}│ Milagros: {self._milagros_realizados:3}                     │{C.RESET}")
-        print(f"{C.CYAN}│ Sacramentos: {len(self._sacramentos)}/4               │{C.RESET}")
-        print(f"{C.AMARILLO}└─────────────────────────────────┘{C.RESET}")
+        print(f"\n{C.AMARILLO}������ ESTADÍSTICAS DIVINAS ������{C.RESET}")
+        print(f"{C.CYAN}� Fe acumulada: {self._fe_acumulada:4}/{self._fe_maxima:<4}          �{C.RESET}")
+        print(f"{C.CYAN}� Exorcismos: {self._exorcismos_realizados:3}                   �{C.RESET}")
+        print(f"{C.CYAN}� Milagros: {self._milagros_realizados:3}                     �{C.RESET}")
+        print(f"{C.CYAN}� Sacramentos: {len(self._sacramentos)}/4               �{C.RESET}")
+        print(f"{C.AMARILLO}�����������������������������������{C.RESET}")
     
     def recibir_dano(self, dano: int, tipo_dano: str = "normal", critico: bool = False) -> int:
         """Recibir daño con modificadores especiales para Sacerdote."""

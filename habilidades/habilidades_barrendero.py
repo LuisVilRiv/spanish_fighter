@@ -58,7 +58,7 @@ class FregonaDeLaVerdad(Habilidad):
         daño_base = usuario.ataque * 2
         
         # Super efectivo contra mentirosos (políticos, segarros)
-        if any(tipo in objetivo.tipo for tipo in ["🎤 Político Prometedor", "🎮 Amego Segarro"]):
+        if any(tipo in objetivo.tipo for tipo in ["� Político Prometedor", "� Amego Segarro"]):
             daño_base = int(daño_base * 1.8)
             print(f"{C.ROJO}¡La verdad duele a los mentirosos! +80% daño{C.RESET}")
         
@@ -84,7 +84,7 @@ class CuboDeLaSabiduria(Habilidad):
         self.es_curacion = False
     
     def usar(self, usuario, objetivo):
-        daño_base = usuario.ataque * 3
+        daño_base = usuario.ataque * 2
         
         # Daño extra si el objetivo es ignorante
         if "Guiri Turista" in objetivo.tipo or "Choni" in objetivo.tipo:
@@ -127,7 +127,7 @@ class MeditacionCallejera(Habilidad):
         # Posible iluminación (10%) - duración 3 turnos
         if random.random() < 0.1:
             usuario.aplicar_estado("iluminado", duracion=3)
-            print(f"{C.VERDE_BRILLANTE}¡ILUMINACIÓN!{C.RESET}")
+            print(f"{C.VERDE_BRILLANTE}¡ILUMINACI�N!{C.RESET}")
         
         print(f"{C.AZUL}¡Meditación callejera! Vida +{vida_curada}, Energía +{energia_recuperada}, Sabiduría +{sabiduria_recuperada}{C.RESET}")
         
@@ -181,10 +181,12 @@ class FilosofiaDeBar(Habilidad):
         objetivo.aplicar_estado("confundido", duracion=2)
         
         # Reduce ataque y defensa - duración 2 turnos
-        objetivo.ataque = max(5, objetivo.ataque - 10)
-        objetivo.defensa = max(5, objetivo.defensa - 8)
+        reduccion_atk = max(4, objetivo.ataque // 5)
+        reduccion_def = max(3, objetivo.defensa // 5)
+        objetivo.ataque = max(5, objetivo.ataque - reduccion_atk)
+        objetivo.defensa = max(5, objetivo.defensa - reduccion_def)
         
-        print(f"{C.CYAN}«Nada tiene sentido, así que ¿por qué preocuparse?». Ataque -10, Defensa -8{C.RESET}")
+        print(f"{C.CYAN}«Nada tiene sentido, así que ¿por qué preocuparse?». Ataque -{reduccion_atk}, Defensa -{reduccion_def}{C.RESET}")
         return {"exito": True, "filosofia": "absurdo", "ataque_reducido": 10, "defensa_reducida": 8}
     
     def _filosofia_hedonista(self, usuario, objetivo):
@@ -202,7 +204,7 @@ class FilosofiaDeBar(Habilidad):
     def _filosofia_estoica(self, usuario, objetivo):
         """Estoicismo - Acepta lo inevitable"""
         # Aumenta defensa significativamente - duración 2 turnos
-        aumento_defensa = 25
+        aumento_defensa = max(8, usuario.defensa // 3)
         usuario.defensa += aumento_defensa
         
         # Resistencia a estados negativos - duración 2 turnos
@@ -227,12 +229,13 @@ class FilosofiaDeBar(Habilidad):
         """Pragmatismo - Lo útil es lo verdadero"""
         # Beneficios prácticos
         usuario.energia_actual = min(usuario.energia_maxima, usuario.energia_actual + 30)
-        usuario.ataque += 8
+        aumento_atk = max(3, usuario.ataque // 5)
+        usuario.ataque += aumento_atk
         
         if hasattr(usuario, '_sabiduria'):
             usuario._sabiduria = min(150, usuario._sabiduria + 5)
         
-        print(f"{C.VERDE}«Lo útil es lo verdadero». Energía +30, Ataque +8, Sabiduría +5{C.RESET}")
+        print(f"{C.VERDE}«Lo útil es lo verdadero». Energía +30, Ataque +{aumento_atk}, Sabiduría +5{C.RESET}")
         return {"exito": True, "filosofia": "pragmatismo", "energia_recuperada": 30, "ataque_aumentado": 8}
 
 class LimpiezaProfunda(Habilidad):
@@ -258,10 +261,10 @@ class LimpiezaProfunda(Habilidad):
                 estados_eliminados.append(estado)
         
         # Daño al objetivo (la "suciedad")
-        daño_base = usuario.ataque * 3
+        daño_base = usuario.ataque * 2
         
         # Extra daño si el objetivo es "sucio" (Segarro, Choni, etc.)
-        if any(tipo in objetivo.tipo for tipo in ["🎮 Amego Segarro", "💅 Choni de Barrio"]):
+        if any(tipo in objetivo.tipo for tipo in ["� Amego Segarro", "� Choni de Barrio"]):
             daño_base = int(daño_base * 1.5)
             print(f"{C.ROJO}¡Limpieza profunda de suciedad! +50% daño{C.RESET}")
         

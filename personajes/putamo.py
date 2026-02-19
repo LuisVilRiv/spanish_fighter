@@ -3,10 +3,10 @@ PutoAmo del Gym - El tío del gym que solo habla de proteínas
 Cultor del físico y la autoestima muscular
 
 Estadísticas:
-- Vida: 90
-- Ataque: 25
-- Defensa: 8
-- Velocidad: 55
+- Vida: 125
+- Ataque: 28
+- Defensa: 18
+- Velocidad: 42
 - Energía: 110
 """
 
@@ -32,11 +32,11 @@ class PutoAmo(Personaje):
     def __init__(self, nombre_personalizado: str = None):
         super().__init__(
             nombre=nombre_personalizado if nombre_personalizado else "Máximo Pump",
-            tipo="💪 PutoAmo del Gym",
-            vida_base=90,
-            ataque_base=25,
-            defensa_base=8,
-            velocidad_base=55,
+            tipo="� PutoAmo del Gym",
+            vida_base=125,
+            ataque_base=28,
+            defensa_base=18,
+            velocidad_base=42,
             energia_base=110
         )
         
@@ -110,17 +110,17 @@ class PutoAmo(Personaje):
     
     def mostrar_stats(self):
         """Muestra estadísticas con estilo putamo."""
-        print(f"\n{C.NEGRITA}{C.ROJO}┌───── PUTAMO DEL GYM ─────┐{C.RESET}")
+        print(f"\n{C.NEGRITA}{C.ROJO}������ PUTAMO DEL GYM ������{C.RESET}")
         super().mostrar_stats()
         
         # Mostrar estadísticas especiales
-        print(f"\n{C.AMARILLO}┌───── ESTADÍSTICAS MUSCULARES ─────┐{C.RESET}")
-        print(f"{C.CYAN}│ Proteínas consumidas: {self._proteinas_consumidas:3} │{C.RESET}")
-        print(f"{C.CYAN}│ Selfies en espejo: {self._selfies_espejo:3}      │{C.RESET}")
-        print(f"{C.CYAN}│ Peso levantado: {self._peso_levantado:4}kg    │{C.RESET}")
-        print(f"{C.CYAN}│ Gritos dados: {self._gritos_dados:3}         │{C.RESET}")
-        print(f"{C.CYAN}│ Nivel muscular: {self._musculo:3}         │{C.RESET}")
-        print(f"{C.AMARILLO}└──────────────────────────────────┘{C.RESET}")
+        print(f"\n{C.AMARILLO}������ ESTADÍSTICAS MUSCULARES ������{C.RESET}")
+        print(f"{C.CYAN}� Proteínas consumidas: {self._proteinas_consumidas:3} �{C.RESET}")
+        print(f"{C.CYAN}� Selfies en espejo: {self._selfies_espejo:3}      �{C.RESET}")
+        print(f"{C.CYAN}� Peso levantado: {self._peso_levantado:4}kg    �{C.RESET}")
+        print(f"{C.CYAN}� Gritos dados: {self._gritos_dados:3}         �{C.RESET}")
+        print(f"{C.CYAN}� Nivel muscular: {self._musculo:3}         �{C.RESET}")
+        print(f"{C.AMARILLO}������������������������������������{C.RESET}")
     
     def recibir_dano(self, dano: int, tipo_dano: str = "normal", critico: bool = False) -> int:
         """Recibir daño con modificadores especiales para PutoAmo."""

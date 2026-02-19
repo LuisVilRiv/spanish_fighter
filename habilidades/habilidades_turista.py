@@ -35,7 +35,7 @@ class PedirDirecciones(Habilidad):
     def _direcciones_correctas(self, usuario, objetivo):
         """Obtiene direcciones correctas"""
         # Curación y energía (encontró el camino)
-        curacion = 20
+        curacion = usuario.vida_maxima // 7
         energia = 25
         
         vida_curada = usuario.recibir_curacion(curacion)
@@ -169,29 +169,30 @@ class ComprarSouvenir(Habilidad):
         if hasattr(usuario, '_souvenirs_inutiles'):
             usuario._souvenirs_inutiles += 1
         
-        print(f"{C.VERDE}¡Compra una 'piedra curativa'! Vida +{vida_curada}. Costo: {costo}€{C.RESET}")
+        print(f"{C.VERDE}¡Compra una 'piedra curativa'! Vida +{vida_curada}. Costo: {costo}�{C.RESET}")
         return {"exito": True, "souvenir": "curativo", "curacion": vida_curada, "costo": costo}
     
     def _souvenir_ofensivo(self, usuario, objetivo, costo):
         """Souvenir ofensivo"""
-        daño = objetivo.recibir_dano(25, "souvenir")
+        daño = objetivo.recibir_dano(usuario.ataque, "souvenir")
         
         # Registrar souvenir
         if hasattr(usuario, '_souvenirs_inutiles'):
             usuario._souvenirs_inutiles += 1
         
-        print(f"{C.ROJO}¡Compra una 'figura de toro enfadado'! Daño: {daño}. Costo: {costo}€{C.RESET}")
+        print(f"{C.ROJO}¡Compra una 'figura de toro enfadado'! Daño: {daño}. Costo: {costo}�{C.RESET}")
         return {"exito": True, "souvenir": "ofensivo", "daño": daño, "costo": costo}
     
     def _souvenir_defensivo(self, usuario, objetivo, costo):
         """Souvenir defensivo - duración 2 turnos"""
-        usuario.defensa += 15
+        aum_def_sov = max(5, usuario.defensa // 3)
+        usuario.defensa += aum_def_sov
         
         # Registrar souvenir
         if hasattr(usuario, '_souvenirs_inutiles'):
             usuario._souvenirs_inutiles += 1
         
-        print(f"{C.AZUL}¡Compra un 'pañuelo protector'! Defensa +15. Costo: {costo}€{C.RESET}")
+        print(f"{C.AZUL}¡Compra un 'pañuelo protector'! Defensa +15. Costo: {costo}�{C.RESET}")
         return {"exito": True, "souvenir": "defensivo", "defensa_aumentada": 15, "costo": costo}
     
     def _souvenir_inutil(self, usuario, objetivo, costo):
@@ -203,7 +204,7 @@ class ComprarSouvenir(Habilidad):
         objetos = ["imán feo", "llavero roto", "postal mojada", "figura de plástico"]
         objeto = random.choice(objetos)
         
-        print(f"{C.AMARILLO}¡Compra un {objeto} completamente inútil! Costo: {costo}€{C.RESET}")
+        print(f"{C.AMARILLO}¡Compra un {objeto} completamente inútil! Costo: {costo}�{C.RESET}")
         return {"exito": True, "souvenir": "inutil", "objeto": objeto, "costo": costo}
     
     def _souvenir_magico(self, usuario, objetivo, costo):
@@ -212,12 +213,12 @@ class ComprarSouvenir(Habilidad):
         if random.random() < 0.5:
             # Efecto positivo
             usuario.vida_actual = usuario.vida_maxima
-            print(f"{C.VERDE_BRILLANTE}¡Compra un 'amuleto de la suerte'! Curación completa. Costo: {costo}€{C.RESET}")
+            print(f"{C.VERDE_BRILLANTE}¡Compra un 'amuleto de la suerte'! Curación completa. Costo: {costo}�{C.RESET}")
             efecto = "curacion_completa"
         else:
             # Efecto negativo
             usuario.recibir_dano(usuario.vida_maxima // 3, "souvenir_maldito")
-            print(f"{C.ROJO_BRILLANTE}¡Compra un 'ídolo maldito'! Daño masivo. Costo: {costo}€{C.RESET}")
+            print(f"{C.ROJO_BRILLANTE}¡Compra un 'ídolo maldito'! Daño masivo. Costo: {costo}�{C.RESET}")
             efecto = "daño_masivo"
         
         # Registrar souvenir
@@ -281,7 +282,7 @@ class Perderse(Habilidad):
         if hasattr(usuario, '_dinero_gastado'):
             usuario._dinero_gastado -= dinero  # Encuentra dinero
         
-        print(f"{C.AMARILLO}¡Se pierde pero encuentra {dinero}€ en el suelo! Veces perdido: {getattr(usuario, '_veces_perdido', 0)}{C.RESET}")
+        print(f"{C.AMARILLO}¡Se pierde pero encuentra {dinero}� en el suelo! Veces perdido: {getattr(usuario, '_veces_perdido', 0)}{C.RESET}")
         return {"exito": True, "resultado": "encontrar_dinero", "dinero": dinero}
     
     def _perderse_y_sufrir_daño(self, usuario, objetivo):
@@ -389,7 +390,7 @@ class BuscarWifi(Habilidad):
             
             # Posible frustración (daño a sí mismo)
             if random.random() < 0.4:
-                usuario.recibir_dano(15, "frustracion")
+                usuario.recibir_dano(max(5, usuario.vida_maxima // 12), "frustracion")
                 print(f"{C.ROJO}¡NO ENCUENTRA WIFI! Energía -{perdida}, Vida -15 por frustración{C.RESET}")
                 return {"exito": True, "wifi": False, "energia_perdida": perdida, "daño": 15}
             else:

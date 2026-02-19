@@ -3,10 +3,10 @@ Guiri Turista - Pobre turista que no sabe ni dónde está ni qué hace aquí
 Víctima eterna de todos, pero con suerte inesperada
 
 Estadísticas:
-- Vida: 60
-- Ataque: 10
-- Defensa: 3
-- Velocidad: 40
+- Vida: 110
+- Ataque: 20
+- Defensa: 16
+- Velocidad: 45
 - Energía: 80
 """
 
@@ -32,11 +32,11 @@ class Turista(Personaje):
     def __init__(self, nombre_personalizado: str = None):
         super().__init__(
             nombre=nombre_personalizado if nombre_personalizado else "Hans el Alemán Perdido",
-            tipo="🧳 Guiri Turista",
-            vida_base=60,
-            ataque_base=10,
-            defensa_base=3,
-            velocidad_base=40,
+            tipo="� Guiri Turista",
+            vida_base=110,
+            ataque_base=20,
+            defensa_base=16,
+            velocidad_base=45,
             energia_base=80
         )
         
@@ -98,17 +98,17 @@ class Turista(Personaje):
     
     def mostrar_stats(self):
         """Muestra estadísticas con estilo turista."""
-        print(f"\n{C.NEGRITA}{C.AZUL}┌───── GUIRI TURISTA ─────┐{C.RESET}")
+        print(f"\n{C.NEGRITA}{C.AZUL}������ GUIRI TURISTA ������{C.RESET}")
         super().mostrar_stats()
         
         # Mostrar estadísticas especiales
-        print(f"\n{C.AMARILLO}┌───── ESTADÍSTICAS TURÍSTICAS ─────┐{C.RESET}")
-        print(f"{C.CYAN}│ Dinero gastado: {self._dinero_gastado:5}€           │{C.RESET}")
-        print(f"{C.CYAN}│ Fotos tomadas: {self._fotos_tomadas:3}                │{C.RESET}")
-        print(f"{C.CYAN}│ Veces perdido: {self._veces_perdido:3}                │{C.RESET}")
-        print(f"{C.CYAN}│ Souvenirs: {self._souvenirs_inutiles:3}                │{C.RESET}")
-        print(f"{C.CYAN}│ Suerte: {self._suerte*100:3.0f}%                  │{C.RESET}")
-        print(f"{C.AMARILLO}└──────────────────────────────────┘{C.RESET}")
+        print(f"\n{C.AMARILLO}������ ESTADÍSTICAS TURÍSTICAS ������{C.RESET}")
+        print(f"{C.CYAN}� Dinero gastado: {self._dinero_gastado:5}�           �{C.RESET}")
+        print(f"{C.CYAN}� Fotos tomadas: {self._fotos_tomadas:3}                �{C.RESET}")
+        print(f"{C.CYAN}� Veces perdido: {self._veces_perdido:3}                �{C.RESET}")
+        print(f"{C.CYAN}� Souvenirs: {self._souvenirs_inutiles:3}                �{C.RESET}")
+        print(f"{C.CYAN}� Suerte: {self._suerte*100:3.0f}%                  �{C.RESET}")
+        print(f"{C.AMARILLO}������������������������������������{C.RESET}")
     
     def recibir_dano(self, dano: int, tipo_dano: str = "normal", critico: bool = False) -> int:
         """Recibir daño con modificadores especiales para Turista."""
@@ -135,7 +135,7 @@ class Turista(Personaje):
         if random.random() < 0.15:
             monedas = random.randint(1, 10)
             self._dinero_gastado -= monedas  # "Encuentra" dinero
-            print(f"{C.AMARILLO}¡Encuentra {monedas}€ en el suelo!{C.RESET}")
+            print(f"{C.AMARILLO}¡Encuentra {monedas}� en el suelo!{C.RESET}")
         
         # Toma fotos aleatorias (20%)
         if random.random() < 0.2:
@@ -151,7 +151,7 @@ class Turista(Personaje):
         self._dinero_gastado += costo
         self._souvenirs_inutiles += 1
         
-        print(f"{C.MAGENTA}¡Compra un {souvenir} por {costo}€! Total gastado: {self._dinero_gastado}€{C.RESET}")
+        print(f"{C.MAGENTA}¡Compra un {souvenir} por {costo}�! Total gastado: {self._dinero_gastado}�{C.RESET}")
         return souvenir
     
     def perderse(self):

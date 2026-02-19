@@ -1,13 +1,13 @@
 """
-Maripili Católica - Defensora de la moral y tradiciones
-Débil contra políticos, fuerte contra segarros
+Maripili Cat�lica - Defensora de la moral y tradiciones
+D�bil contra pol�ticos, fuerte contra segarros
 
-Estadísticas:
-- Vida: 75
-- Ataque: 60
-- Defensa: 70
-- Velocidad: 55
-- Energía: 110
+Estad�sticas:
+- Vida: 130
+- Ataque: 20
+- Defensa: 24
+- Velocidad: 40
+- Energ�a: 110
 """
 
 from .personaje_base import Personaje
@@ -23,18 +23,18 @@ from utils import Colores as C
 
 class Catolico(Personaje):
     """
-    Personaje: Maripili Católica
-    La típica señora de la parroquia que reza el rosario y juzga a todo el mundo.
+    Personaje: Maripili Cat�lica
+    La t�pica se�ora de la parroquia que reza el rosario y juzga a todo el mundo.
     """
     
     def __init__(self, nombre_personalizado: str = None):
         super().__init__(
             nombre=nombre_personalizado if nombre_personalizado else "Maripili de la Parroquia",
-            tipo="📿 Católica Conservadora",
-            vida_base=75,
-            ataque_base=60,
-            defensa_base=70,
-            velocidad_base=55,
+            tipo=" Cat�lica Conservadora",
+            vida_base=130,
+            ataque_base=20,
+            defensa_base=24,
+            velocidad_base=40,
             energia_base=110
         )
         
@@ -43,15 +43,15 @@ class Catolico(Personaje):
         self.fortalezas = ["religioso", "tradicional", "moral"]
         self.inmunidades = ["tentacion"]
         
-        # Inicializar habilidades específicas
+        # Inicializar habilidades espec�ficas
         self.inicializar_habilidades()
     
     @classmethod
     def descripcion(cls):
-        return "Defensora de la moral y tradiciones, débil contra políticos"
+        return "Defensora de la moral y tradiciones, d�bil contra pol�ticos"
     
     def inicializar_habilidades(self):
-        """Inicializa las 6 habilidades únicas de la Católica."""
+        """Inicializa las 6 habilidades �nicas de la Cat�lica."""
         self.habilidades = [
             RezarRosario(),
             AguaBendita(),
@@ -62,6 +62,6 @@ class Catolico(Personaje):
         ]
     
     def mostrar_stats(self):
-        """Muestra estadísticas con estilo católico."""
-        print(f"\n{C.NEGRITA}{C.MAGENTA}┌───── MARIPILI CATÓLICA ─────┐{C.RESET}")
+        """Muestra estad�sticas con estilo cat�lico."""
+        print(f"\n{C.NEGRITA}{C.MAGENTA} MARIPILI CAT�LICA {C.RESET}")
         super().mostrar_stats()

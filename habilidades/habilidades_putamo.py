@@ -55,8 +55,9 @@ class BatidoDeProteinas(Habilidad):
         vida_curada = usuario.recibir_curacion(curacion)
         
         # Aumenta ataque temporalmente - duración 2 turnos
-        usuario.ataque += 12
-        print(f"{C.VERDE}¡Batido de proteínas! Vida +{vida_curada}, Ataque +12{C.RESET}")
+        aum_atk = max(4, usuario.ataque // 4)
+        usuario.ataque += aum_atk
+        print(f"{C.VERDE}¡Batido de proteínas! Vida +{vida_curada}, Ataque +{aum_atk}{C.RESET}")
         
         # Registrar proteína consumida
         if hasattr(usuario, '_proteinas_consumidas'):
@@ -94,7 +95,8 @@ class SelfieEnElEspejo(Habilidad):
             usuario._musculo = min(150, usuario._musculo + aumento)
         
         # Aumenta ataque (autoestima) - duración 2 turnos
-        usuario.ataque += 8
+        aum_atk2 = max(3, usuario.ataque // 5)
+        usuario.ataque += aum_atk2
         
         # Registrar selfie
         if hasattr(usuario, '_selfies_espejo'):
@@ -105,7 +107,7 @@ class SelfieEnElEspejo(Habilidad):
             objetivo.aplicar_estado("cegado", duracion=1)
             print(f"{C.ROJO}¡Flash del selfie! Cegado.{C.RESET}")
         
-        print(f"{C.MAGENTA}¡Selfie en el espejo! Músculo +15, Ataque +8. Selfies: {getattr(usuario, '_selfies_espejo', 0)}{C.RESET}")
+        print(f"{C.MAGENTA}¡Selfie en el espejo! Músculo +15, Ataque +{aum_atk2}. Selfies: {getattr(usuario, '_selfies_espejo', 0)}{C.RESET}")
         
         return {"exito": True, "musculo_aumentado": 15, "ataque_aumentado": 8}
 
@@ -123,7 +125,7 @@ class Levantamiento(Habilidad):
     
     def usar(self, usuario, objetivo):
         # Daño base reducido de *4 a *3
-        daño_base = usuario.ataque * 3
+        daño_base = int(usuario.ataque * 2)
         
         # Extra daño si el objetivo es ligero (reducido de 1.5 a 1.4)
         if "Flaquito" in objetivo.tipo or "Guiri" in objetivo.tipo:
@@ -146,7 +148,7 @@ class Levantamiento(Habilidad):
             usuario.aplicar_estado("lesionado", duracion=2)  # antes 3
             print(f"{C.ROJO}¡Lesión por sobreesfuerzo!{C.RESET}")
         
-        print(f"{C.VERDE_BRILLANTE}¡LEVANTAMIENTO ÉPICO! Daño: {daño}, Músculo +20. Peso total: {getattr(usuario, '_peso_levantado', 0)}kg{C.RESET}")
+        print(f"{C.VERDE_BRILLANTE}¡LEVANTAMIENTO �PICO! Daño: {daño}, Músculo +20. Peso total: {getattr(usuario, '_peso_levantado', 0)}kg{C.RESET}")
         
         return {"exito": True, "daño": daño, "musculo_aumentado": 20}
 
@@ -164,9 +166,12 @@ class GritoDeGuerra(Habilidad):
     
     def usar(self, usuario, objetivo):
         # Aumento significativo de stats - duración 2 turnos
-        usuario.ataque += 20
-        usuario.defensa += 15
-        usuario.velocidad += 10
+        aum_atk3 = max(5, usuario.ataque // 3)
+        aum_def3 = max(4, usuario.defensa // 3)
+        aum_vel3 = max(3, usuario.velocidad // 6)
+        usuario.ataque += aum_atk3
+        usuario.defensa += aum_def3
+        usuario.velocidad += aum_vel3
         
         # Recupera energía
         usuario.energia_actual = min(usuario.energia_maxima, usuario.energia_actual + 30)
@@ -208,7 +213,7 @@ class RutinaExtrema(Habilidad):
         efectos = []
         
         # 1. Daño masivo al objetivo (antes *5, ahora *4)
-        daño_base = usuario.ataque * 4
+        daño_base = int(usuario.ataque * 2.5)
         daño = objetivo.recibir_dano(daño_base, "fuerza")
         efectos.append(f"Daño: {daño}")
         
@@ -218,8 +223,10 @@ class RutinaExtrema(Habilidad):
             efectos.append("Músculo +30")
         
         # 3. Aumento permanente de stats (antes +25/+20/+15, ahora +15/+12/+10)
-        usuario.ataque += 15
-        usuario.defensa += 12
+        aum_atk4 = max(4, usuario.ataque // 4)
+        aum_def4 = max(3, usuario.defensa // 4)
+        usuario.ataque += aum_atk4
+        usuario.defensa += aum_def4
         usuario.velocidad += 10
         efectos.append("Ataque +15, Defensa +12, Velocidad +10")
         

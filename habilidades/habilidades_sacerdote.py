@@ -25,15 +25,15 @@ class Exorcismo(Habilidad):
         time.sleep(0.5)
         
         # Daño base
-        dano_base = usuario.ataque * 2
+        dano_base = int(usuario.ataque * 1.5)
         
         # Efectivo contra demonios, segarros y pecadores
-        es_impuro = any(tipo in objetivo.tipo for tipo in ["🎮 Amego Segarro", "💅 Choni de Barrio", "🧳 Guiri Turista"])
+        es_impuro = any(tipo in objetivo.tipo for tipo in ["� Amego Segarro", "� Choni de Barrio", "� Guiri Turista"])
         es_demonio = "demonio" in objetivo.tipo.lower() if hasattr(objetivo, 'tipo') else False
         
         if es_impuro or es_demonio:
-            dano_base *= 3
-            print(f"{C.ROJO_BRILLANTE}¡EXORCISMO SUPEREFECTIVO! x3 daño{C.RESET}")
+            dano_base = int(dano_base * 2)
+            print(f"{C.ROJO_BRILLANTE}¡EXORCISMO SUPEREFECTIVO! x2 daño{C.RESET}")
             
             # Expulsión forzada (30%) - duración 1 turno
             if random.random() < 0.3:
@@ -81,7 +81,7 @@ class BendicionDivina(Habilidad):
         vida_curada = objetivo.recibir_curacion(curacion)
         
         # Aumenta defensa - duración 2 turnos
-        aumento_defensa = 15
+        aumento_defensa = max(4, objetivo.defensa // 4)
         objetivo.defensa += aumento_defensa
         
         # Cura estados negativos
@@ -228,7 +228,7 @@ class MilagroDivino(Habilidad):
         vida_curada = usuario.recibir_curacion(curacion)
         estados_antes = usuario.estados.copy()
         usuario.estados = [estado for estado in usuario.estados if estado not in ["quemado", "envenenado", "maldito"]]
-        print(f"{C.VERDE_BRILLANTE}¡MILAGRO DE CURACIÓN! Vida +{vida_curada}{C.RESET}")
+        print(f"{C.VERDE_BRILLANTE}¡MILAGRO DE CURACI�N! Vida +{vida_curada}{C.RESET}")
         if hasattr(usuario, '_milagros_realizados'):
             usuario._milagros_realizados += 1
         return {"exito": True, "milagro": "curacion", "curacion": vida_curada, "estados_eliminados": estados_antes, "mensaje": "Milagro de curación realizado"}
@@ -236,23 +236,26 @@ class MilagroDivino(Habilidad):
     def _milagro_dano(self, usuario, objetivo):
         dano = objetivo.vida_maxima // 3
         dano_recibido = objetivo.recibir_dano(dano, "divino")
-        print(f"{C.ROJO_BRILLANTE}¡MILAGRO DE DESTRUCCIÓN! Daño: {dano_recibido}{C.RESET}")
+        print(f"{C.ROJO_BRILLANTE}¡MILAGRO DE DESTRUCCI�N! Daño: {dano_recibido}{C.RESET}")
         return {"exito": True, "milagro": "dano", "dano": dano_recibido, "mensaje": "Milagro de destrucción realizado"}
     
     def _milagro_resurreccion(self, usuario, objetivo):
         if not usuario.esta_vivo():
             usuario.vida_actual = usuario.vida_maxima // 2
-            print(f"{C.VERDE_BRILLANTE}¡RESURRECCIÓN MILAGROSA! Revive con mitad de vida.{C.RESET}")
+            print(f"{C.VERDE_BRILLANTE}¡RESURRECCI�N MILAGROSA! Revive con mitad de vida.{C.RESET}")
         if random.random() < 0.5:
             curacion = objetivo.vida_maxima // 4
             vida_curada = objetivo.recibir_curacion(curacion)
         return {"exito": True, "milagro": "resurreccion", "resucitado": not usuario.esta_vivo(), "mensaje": "Milagro de resurrección"}
     
     def _milagro_bendicion(self, usuario, objetivo):
-        usuario.ataque += 20
-        usuario.defensa += 15
-        usuario.velocidad += 10
-        print(f"{C.AZUL}¡MILAGRO DE BENDICIÓN! Stats mejoradas.{C.RESET}")
+        aum_atk = max(5, usuario.ataque // 3)
+        aum_def = max(4, usuario.defensa // 3)
+        aum_vel = max(3, usuario.velocidad // 6)
+        usuario.ataque += aum_atk
+        usuario.defensa += aum_def
+        usuario.velocidad += aum_vel
+        print(f"{C.AZUL}¡MILAGRO DE BENDICI�N! Stats mejoradas.{C.RESET}")
         return {"exito": True, "milagro": "bendicion", "ataque_mejorado": 20, "defensa_mejorada": 15, "velocidad_mejorada": 10, "mensaje": "Bendición potenciada aplicada"}
     
     def _milagro_castigo(self, usuario, objetivo):
@@ -266,7 +269,7 @@ class MilagroDivino(Habilidad):
         objetivo.aplicar_estado("transfigurado", duracion=2)
         if random.random() < 0.33:
             objetivo.aplicar_estado("sin_habilidades", duracion=2)
-            print(f"{C.MAGENTA}¡TRANSFIGURACIÓN! {objetivo.nombre} pierde temporalmente sus habilidades.{C.RESET}")
+            print(f"{C.MAGENTA}¡TRANSFIGURACI�N! {objetivo.nombre} pierde temporalmente sus habilidades.{C.RESET}")
         return {"exito": True, "milagro": "transfiguracion", "mensaje": "Transfiguración divina realizada"}
 
 class CastigoDivino(Habilidad):
@@ -289,7 +292,7 @@ class CastigoDivino(Habilidad):
         dano_base = int(usuario.ataque * 2.2)
         
         # Extra contra pecadores (reducido de *2 a *1.5)
-        es_pecador = any(tipo in objetivo.tipo for tipo in ["🎮 Amego Segarro", "💅 Choni de Barrio", "🎤 Político Prometedor"])
+        es_pecador = any(tipo in objetivo.tipo for tipo in ["� Amego Segarro", "� Choni de Barrio", "� Político Prometedor"])
         if es_pecador:
             dano_base = int(dano_base * 1.5)
             print(f"{C.ROJO_BRILLANTE}¡PECADOR DETECTADO! +50% daño{C.RESET}")
@@ -304,8 +307,8 @@ class CastigoDivino(Habilidad):
         
         # Reducción permanente de stats (menos probable y menos severa)
         if random.random() < 0.05:  # antes 0.1
-            objetivo.ataque = max(1, objetivo.ataque - 3)
-            objetivo.defensa = max(1, objetivo.defensa - 2)
+            objetivo.ataque = max(1, objetivo.ataque - max(2, objetivo.ataque // 8))
+            objetivo.defensa = max(1, objetivo.defensa - max(1, objetivo.defensa // 8))
             print(f"{C.ROJO}¡Reducción permanente leve de stats!{C.RESET}")
         
         return {
