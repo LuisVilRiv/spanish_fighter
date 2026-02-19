@@ -132,6 +132,9 @@ class CombateEquipo:
         # Candado anti-doble-turno: IDs de personajes que ya actuaron este round.
         self._ya_actuaron: set = set()
 
+        # Último evento aleatorio (la escena lo lee para mostrarlo entre turnos)
+        self.ultimo_evento: dict = None
+
         # Para el sistema de GUI: track del personaje que está actuando
         self.personaje_activo = None
         self._round_en_curso: Optional[ResultadoRound] = None
@@ -475,8 +478,10 @@ class CombateEquipo:
             p.actualizar_estados()
 
     def _activar_evento_aleatorio(self):
+        """Activa un evento aleatorio y almacena el resultado en self.ultimo_evento."""
+        self.ultimo_evento = None
         if not EVENTOS_NORMALES:
-            return
+            return None
         rand = random.random()
         if rand < 0.70:
             clase = random.choice(EVENTOS_NORMALES)
@@ -484,11 +489,13 @@ class CombateEquipo:
             clase = random.choice(EVENTOS_RAROS)
         else:
             clase = random.choice(EVENTOS_ULTRA_RAROS)
-        # Aplica a un personaje aleatorio vivo
         todos = [p for p in self.equipo1 + self.equipo2 if p.esta_vivo()]
         if len(todos) >= 2:
             p1, p2 = random.sample(todos, 2)
-            clase().activar(p1, p2, self.round_actual)
+            resultado = clase().activar(p1, p2, self.round_actual)
+            self.ultimo_evento = resultado
+            return resultado
+        return None
 
     def _verificar_fin_combate(self):
         vivos1 = _vivos(self.equipo1)

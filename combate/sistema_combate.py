@@ -120,13 +120,10 @@ class Combate:
 
         self._aplicar_regeneracion(resultado)
 
-        if random.random() < self.probabilidad_evento:
-            evento_resultado = self._activar_evento_aleatorio()
-            resultado.evento_aleatorio = evento_resultado
-            resultado.mensajes.append(evento_resultado.get("mensaje", ""))
-            self.eventos_ocurridos += 1
-
         self._aplicar_efectos_estados(resultado)
+
+        # NOTA: el evento aleatorio se dispara desde la escena
+        # vía verificar_y_activar_evento(), entre este turno y el de la IA.
 
         resultado.jugador_vida_actual = self.jugador.vida_actual
         resultado.ia_vida_actual = self.ia.vida_actual
@@ -274,6 +271,19 @@ class Combate:
         self.ia.energia_actual = min(self.ia.energia_maxima, self.ia.energia_actual + random.randint(10, 15))
         self.jugador.regenerar()
         self.ia.regenerar()
+
+    def verificar_y_activar_evento(self) -> Optional[Dict[str, Any]]:
+        """
+        Comprueba si toca evento aleatorio y, si es así, lo activa.
+        Debe llamarse desde la escena ENTRE el turno del jugador y el de la IA,
+        para que el evento pueda mostrarse de forma prominente en la UI.
+        Devuelve el resultado del evento o None si no ocurrió nada.
+        """
+        if random.random() < self.probabilidad_evento:
+            resultado = self._activar_evento_aleatorio()
+            self.eventos_ocurridos += 1
+            return resultado
+        return None
 
     def _activar_evento_aleatorio(self) -> Dict[str, Any]:
         rand = random.random()
@@ -503,15 +513,11 @@ class Combate:
         # Regeneración
         self._aplicar_regeneracion(resultado)
 
-        # Evento aleatorio
-        if random.random() < self.probabilidad_evento:
-            evento_resultado = self._activar_evento_aleatorio()
-            resultado.evento_aleatorio = evento_resultado
-            resultado.mensajes.append(evento_resultado.get("mensaje", ""))
-            self.eventos_ocurridos += 1
-
         # Efectos de estados
         self._aplicar_efectos_estados(resultado)
+
+        # NOTA: los eventos aleatorios se disparan entre turnos
+        # desde la escena, usando verificar_y_activar_evento().
 
         resultado.jugador_vida_actual = self.jugador.vida_actual
         resultado.ia_vida_actual = self.ia.vida_actual
