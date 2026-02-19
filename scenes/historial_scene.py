@@ -1,10 +1,23 @@
 # scenes/historial_scene.py
+"""
+HistorialView — muestra el historial de cualquier modo de combate.
+
+Soporta dos formatos de resultado:
+  • ResultadoTurno  (modo 1v1)  — campos: jugador_accion, ia_accion,
+                                   daño_jugador_a_ia, daño_ia_a_jugador,
+                                   curacion_jugador, curacion_ia, evento_aleatorio
+  • ResultadoAccion (modo equipo) — campos: descripcion, daño, curacion,
+                                    mensajes_extra, actor (nombre), objetivo (nombre)
+"""
 import arcade
 from scenes.base_view import BaseView
 from gui.widgets import ImageButton, RetroLabel
 
+TURNOS_POR_PAGINA = 6
+
+
 class HistorialView(BaseView):
-    def __init__(self, app, historial, on_back=None):
+    def __init__(self, app, historial: list, on_back=None):
         super().__init__(app)
         self.historial         = historial
         self.on_back_callback  = on_back
@@ -12,32 +25,31 @@ class HistorialView(BaseView):
         self.ui_elements       = []
         self._setup_ui()
 
+    # ── UI ───────────────────────────────────────────────────────────────────
+
     def _setup_ui(self):
         self.ui_elements.clear()
         w, h = self.app.width, self.app.height
         self.background_color = (30, 35, 50)
 
-        # ── Zonas ─────────────────────────────────────────────────────────
-        HEADER_H   = int(h * 0.11)
-        FOOTER_H   = int(h * 0.16)
-        TEXT_TOP   = h - HEADER_H
-        TEXT_BOT   = FOOTER_H
-        TEXT_H     = TEXT_TOP - TEXT_BOT
+        HEADER_H = int(h * 0.11)
+        FOOTER_H = int(h * 0.16)
+        TEXT_TOP = h - HEADER_H
+        TEXT_BOT = FOOTER_H
 
-        # ── Título ────────────────────────────────────────────────────────
-        title_sz = max(20, int(h * 0.042))
-        self.title = RetroLabel(
+        # Título
+        self.ui_elements.append(RetroLabel(
             "HISTORIAL DEL COMBATE",
             w // 2, h - HEADER_H // 2,
-            font_size=title_sz, color=(255, 220, 150),
+            font_size=max(20, int(h * 0.042)),
+            color=(255, 220, 150),
             anchor_x='center', anchor_y='center'
-        )
-        self.ui_elements.append(self.title)
+        ))
 
-        # Paginación junto al título
-        total_paginas = max(1, (len(self.historial) + 4) // 5)
+        # Indicador de página
+        total_pags = self._total_paginas()
         self.lbl_pagina = RetroLabel(
-            f"Pág. {self.current_page + 1} / {total_paginas}",
+            f"Pág. {self.current_page + 1} / {total_pags}",
             w - int(w * 0.04), h - HEADER_H // 2,
             font_size=max(11, int(h * 0.020)),
             color=(160, 160, 180),
@@ -45,85 +57,122 @@ class HistorialView(BaseView):
         )
         self.ui_elements.append(self.lbl_pagina)
 
-        # ── Texto del historial ───────────────────────────────────────────
-        margin_x  = int(w * 0.05)
-        text_font = max(11, int(h * 0.019))
+        # Cuerpo de texto
         self.text_label = RetroLabel(
             self._get_page_text(),
-            x=margin_x, y=TEXT_TOP,
-            width=w - 2 * margin_x,
-            font_size=text_font, color=(200, 200, 200),
+            x=int(w * 0.05), y=TEXT_TOP,
+            width=int(w * 0.90),
+            font_size=max(11, int(h * 0.019)),
+            color=(200, 200, 200),
             anchor_x='left', anchor_y='top', multiline=True
         )
         self.ui_elements.append(self.text_label)
 
-        # ── Botones de pie ────────────────────────────────────────────────
-        BTN_H    = int(FOOTER_H * 0.38)
-        BTN_GAP  = int(w * 0.025)
-        nav_w    = int(min(w * 0.18, 175))
-        back_w   = int(min(w * 0.22, 210))
+        # Botones de pie
+        BTN_H   = int(FOOTER_H * 0.38)
+        BTN_GAP = int(w * 0.025)
+        nav_w   = int(min(w * 0.18, 175))
+        back_w  = int(min(w * 0.22, 210))
 
-        # Fila superior: ANTERIOR | SIGUIENTE
         nav_row_y  = TEXT_BOT + int(FOOTER_H * 0.55) - BTN_H // 2
-        btn_prev = ImageButton(
-            x=w // 2 - nav_w - BTN_GAP,
-            y=nav_row_y,
-            width=nav_w, height=BTN_H,
-            text="◀ ANTERIOR",
-            normal_color=(90, 90, 120), hover_color=(120, 120, 160),
-            callback=self.prev_page
-        )
-        btn_next = ImageButton(
-            x=w // 2 + BTN_GAP,
-            y=nav_row_y,
-            width=nav_w, height=BTN_H,
-            text="SIGUIENTE ▶",
-            normal_color=(90, 90, 120), hover_color=(120, 120, 160),
-            callback=self.next_page
-        )
-
-        # Fila inferior: VOLVER
         back_row_y = TEXT_BOT + int(FOOTER_H * 0.12)
-        btn_back = ImageButton(
-            x=w // 2 - back_w // 2,
-            y=back_row_y,
-            width=back_w, height=BTN_H,
-            text="VOLVER",
-            normal_color=(110, 110, 135), hover_color=(145, 145, 175),
-            callback=self.back
-        )
 
-        self.ui_elements.extend([btn_prev, btn_next, btn_back])
+        self.ui_elements.extend([
+            ImageButton(
+                x=w // 2 - nav_w - BTN_GAP, y=nav_row_y,
+                width=nav_w, height=BTN_H,
+                text="◀ ANTERIOR",
+                normal_color=(90, 90, 120), hover_color=(120, 120, 160),
+                callback=self.prev_page
+            ),
+            ImageButton(
+                x=w // 2 + BTN_GAP, y=nav_row_y,
+                width=nav_w, height=BTN_H,
+                text="SIGUIENTE ▶",
+                normal_color=(90, 90, 120), hover_color=(120, 120, 160),
+                callback=self.next_page
+            ),
+            ImageButton(
+                x=w // 2 - back_w // 2, y=back_row_y,
+                width=back_w, height=BTN_H,
+                text="VOLVER",
+                normal_color=(110, 110, 135), hover_color=(145, 145, 175),
+                callback=self.back
+            ),
+        ])
 
-    def _get_page_text(self):
-        turnos_por_pagina = 5
-        start      = self.current_page * turnos_por_pagina
-        page_items = self.historial[start:start + turnos_por_pagina]
-        if not page_items:
-            return "No hay más turnos."
+    # ── Paginación ───────────────────────────────────────────────────────────
+
+    def _total_paginas(self) -> int:
+        return max(1, (len(self.historial) + TURNOS_POR_PAGINA - 1) // TURNOS_POR_PAGINA)
+
+    def _get_page_text(self) -> str:
+        start = self.current_page * TURNOS_POR_PAGINA
+        page  = self.historial[start:start + TURNOS_POR_PAGINA]
+        if not page:
+            return "No hay más entradas."
+
         lines = []
-        for i, turno in enumerate(page_items, start=start + 1):
-            lines.append(f"─── Turno {i} ───────────────────────")
-            if turno.jugador_accion:
-                lines.append(f"  Jugador : {turno.jugador_accion}")
-            if turno.ia_accion:
-                lines.append(f"  IA      : {turno.ia_accion}")
-            if turno.daño_jugador_a_ia:
-                lines.append(f"  Daño a IA      : {turno.daño_jugador_a_ia}")
-            if turno.daño_ia_a_jugador:
-                lines.append(f"  Daño recibido  : {turno.daño_ia_a_jugador}")
-            if turno.curacion_jugador:
-                lines.append(f"  Curación jugador: {turno.curacion_jugador}")
-            if turno.curacion_ia:
-                lines.append(f"  Curación IA     : {turno.curacion_ia}")
-            if turno.evento_aleatorio:
-                lines.append(f"  Evento : {turno.evento_aleatorio.get('nombre', 'Evento')}")
+        for i, entrada in enumerate(page, start=start + 1):
+            lines.extend(self._formatear_entrada(i, entrada))
             lines.append("")
         return "\n".join(lines)
 
+    # ── Formateo adaptativo ───────────────────────────────────────────────────
+
+    @staticmethod
+    def _formatear_entrada(numero: int, entrada) -> list:
+        """
+        Devuelve una lista de strings representando la entrada.
+        Compatible con ResultadoTurno (1v1) y ResultadoAccion (equipo).
+        """
+        lines = [f"─── #{numero} ───────────────────────"]
+
+        # ── Formato equipo: tiene atributo 'descripcion' ──────────────────────
+        if hasattr(entrada, 'descripcion'):
+            actor_nom = getattr(getattr(entrada, 'actor', None), 'nombre', None)
+            obj_nom   = getattr(getattr(entrada, 'objetivo', None), 'nombre', None)
+            if actor_nom:
+                lines.append(f"  Actor   : {actor_nom}" + (f" → {obj_nom}" if obj_nom else ""))
+            lines.append(f"  Acción  : {entrada.descripcion}")
+            daño = getattr(entrada, 'daño', None)
+            if daño:
+                lines.append(f"  ⚔ Daño  : {daño}")
+            cur = getattr(entrada, 'curacion', None)
+            if cur:
+                lines.append(f"  💚 Cur. : {cur}")
+            for m in getattr(entrada, 'mensajes_extra', []):
+                lines.append(f"  ⚠ {m}")
+            return lines
+
+        # ── Formato 1v1: campos clásicos ──────────────────────────────────────
+        jac = getattr(entrada, 'jugador_accion', None)
+        iac = getattr(entrada, 'ia_accion', None)
+        dj  = getattr(entrada, 'daño_jugador_a_ia', None)
+        de  = getattr(entrada, 'daño_ia_a_jugador', None)
+        cj  = getattr(entrada, 'curacion_jugador', None)
+        ci  = getattr(entrada, 'curacion_ia', None)
+        ev  = getattr(entrada, 'evento_aleatorio', None)
+
+        if jac:
+            lines.append(f"  Jugador : {jac}")
+        if iac:
+            lines.append(f"  IA      : {iac}")
+        if dj:
+            lines.append(f"  ⚔ Daño a IA     : {dj}")
+        if de:
+            lines.append(f"  ⚔ Daño recibido : {de}")
+        if cj:
+            lines.append(f"  💚 Cur. jugador  : {cj}")
+        if ci:
+            lines.append(f"  💚 Cur. IA       : {ci}")
+        if ev:
+            lines.append(f"  ⚡ Evento: {ev.get('nombre', ev.get('mensaje', 'Evento'))}")
+
+        return lines
+
     def _refresh_page_label(self):
-        total = max(1, (len(self.historial) + 4) // 5)
-        self.lbl_pagina.text = f"Pág. {self.current_page + 1} / {total}"
+        self.lbl_pagina.text = f"Pág. {self.current_page + 1} / {self._total_paginas()}"
 
     def prev_page(self):
         if self.current_page > 0:
@@ -132,8 +181,7 @@ class HistorialView(BaseView):
             self._refresh_page_label()
 
     def next_page(self):
-        total = (len(self.historial) + 4) // 5
-        if self.current_page < total - 1:
+        if self.current_page < self._total_paginas() - 1:
             self.current_page += 1
             self.text_label.text = self._get_page_text()
             self._refresh_page_label()
@@ -144,6 +192,8 @@ class HistorialView(BaseView):
         else:
             from scenes.menu_scene import MenuView
             self.app.goto_view(MenuView(self.app))
+
+    # ── Render y eventos ─────────────────────────────────────────────────────
 
     def on_draw(self):
         self.clear()

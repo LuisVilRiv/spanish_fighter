@@ -24,64 +24,48 @@ class MenuView(BaseView):
     def _setup_ui(self):
         w = self.app.width
         h = self.app.height
-
         self.bg_top = arcade.color.DARK_SLATE_GRAY
         self.bg_bottom = arcade.color.SLATE_GRAY
 
-        # ── Zonas verticales ──────────────────────────────────────────────
-        # [título: 20% superior] [botones: 65% central] [pie: 15% inferior]
-        title_zone_center_y = h * 0.82
-        buttons_zone_top    = h * 0.70
-        buttons_zone_bottom = h * 0.12
-
         self.title = RetroLabel(
-            "Batalla Cómica Española",
-            w // 2, int(title_zone_center_y),
-            font_size=max(28, int(h * 0.055)),
-            color=(255, 255, 150),
+            "Batalla CÃ³mica EspaÃ±ola",
+            w // 2, h - 150, font_size=48, color=(255, 255, 150),
             anchor_x='center', anchor_y='center'
         )
 
-        # ── Botones: distribuidos uniformemente en la zona de botones ─────
+        btn_width = 260
+        btn_height = 70
+        start_y = h * 0.55
+        spacing = 90
+        btn_x = w // 2 - btn_width // 2
+
         btns_data = [
             ("NUEVA PARTIDA",   (100, 160, 100), (130, 200, 130), self.new_game),
             ("CARGAR PARTIDA",  (100, 140, 180), (130, 170, 220), self.load_game),
             ("PERSONAJES",      (160, 120, 160), (200, 150, 200), self.view_characters),
             ("INSTRUCCIONES",   (160, 140, 140), (200, 180, 180), self.instructions),
-            ("SALIR",           (180, 100, 100), (220, 130, 130), self.exit_game),
+            ("SALIR",           (180, 100, 100), (220, 130, 130), self.exit_game)
         ]
-
-        n = len(btns_data)
-        btn_w  = int(min(w * 0.35, 320))
-        btn_h  = int(min((buttons_zone_top - buttons_zone_bottom) / (n + 1) * 0.75, 72))
-        btn_h  = max(btn_h, 44)
-
-        # Distribuir centros uniformemente entre los límites de la zona
-        zone_h   = buttons_zone_top - buttons_zone_bottom
-        slot_h   = zone_h / n
-        btn_x    = w // 2 - btn_w // 2
 
         self.ui_elements = []
         for i, (text, color, hover, callback) in enumerate(btns_data):
-            # Centro de cada slot: empieza desde la parte superior de la zona
-            center_y = int(buttons_zone_top - slot_h * i - slot_h / 2)
             btn = ImageButton(
-                x=btn_x, y=center_y - btn_h // 2,
-                width=btn_w, height=btn_h,
+                x=btn_x, y=int(start_y - i * spacing),
+                width=btn_width, height=btn_height,
                 text=text, normal_color=color, hover_color=hover,
                 callback=callback
             )
             self.ui_elements.append(btn)
 
-        # ── Popup ─────────────────────────────────────────────────────────
+        # Popup: textos
         self.popup_title_text = arcade.Text(
-            "⚙ PRÓXIMAMENTE",
+            "âš™ PRÃ“XIMAMENTE",
             w // 2, h // 2 + 70,
             arcade.color.YELLOW, font_size=20,
             anchor_x="center", anchor_y="center", bold=True
         )
         self.popup_message_text = arcade.Text(
-            "Esta funcionalidad estará disponible\nen futuras actualizaciones del juego.\n\n¡Gracias por tu paciencia!",
+            "Esta funcionalidad estarÃ¡ disponible\nen futuras actualizaciones del juego.\n\nÂ¡Gracias por tu paciencia!",
             w // 2, h // 2 - 10,
             arcade.color.LIGHT_GRAY, font_size=14,
             anchor_x="center", anchor_y="center", multiline=True, width=400
@@ -102,6 +86,7 @@ class MenuView(BaseView):
         self.clear()
         w, h = self.app.width, self.app.height
 
+        # Fondo degradado simple
         arcade.draw_rect_filled(arcade.XYWH(w // 2, h // 2, w, h), self.bg_bottom)
         arcade.draw_rect_filled(arcade.XYWH(w // 2, h - 40, w, 80), self.bg_top)
         arcade.draw_rect_filled(arcade.XYWH(w // 2, 40, w, 80), self.bg_top)
@@ -125,16 +110,25 @@ class MenuView(BaseView):
         px = w // 2 - pw // 2
         py = h // 2 - ph // 2
 
-        arcade.draw_rect_filled(arcade.XYWH(w // 2, h // 2, w, h), (0, 0, 0, 160))
-        arcade.draw_rect_filled(arcade.LBWH(px, py, pw, ph), (40, 40, 70, 245))
-        arcade.draw_rect_outline(arcade.LBWH(px, py, pw, ph), (200, 180, 100, 255), border_width=3)
+        arcade.draw_rect_filled(
+            arcade.XYWH(w // 2, h // 2, w, h),
+            (0, 0, 0, 160)
+        )
+        arcade.draw_rect_filled(
+            arcade.LBWH(px, py, pw, ph),
+            (40, 40, 70, 245)
+        )
+        arcade.draw_rect_outline(
+            arcade.LBWH(px, py, pw, ph),
+            (200, 180, 100, 255), border_width=3
+        )
 
-        self.popup_title_text.x   = w // 2
-        self.popup_title_text.y   = h // 2 + 70
+        self.popup_title_text.x = w // 2
+        self.popup_title_text.y = h // 2 + 70
         self.popup_message_text.x = w // 2
         self.popup_message_text.y = h // 2 - 10
-        self.popup_timer_text.x   = w // 2
-        self.popup_timer_text.y   = h // 2 - 60
+        self.popup_timer_text.x = w // 2
+        self.popup_timer_text.y = h // 2 - 60
 
         self.popup_title_text.draw()
         self.popup_message_text.draw()
@@ -151,7 +145,8 @@ class MenuView(BaseView):
         super().on_mouse_press(x, y, button, modifiers)
 
     def new_game(self):
-        self.app.push_view(CharacterSelectView(self.app))
+        from scenes.mode_select_scene import ModeSelectView
+        self.app.push_view(ModeSelectView(self.app))
 
     def view_characters(self):
         self.app.push_view(CharactersInfoView(self.app))

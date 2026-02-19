@@ -1,6 +1,6 @@
 """
 Clase base abstracta para todas las habilidades del juego.
-Cada habilidad hereda de esta clase y define su comportamiento único.
+Cada habilidad hereda de esta clase y define su comportamiento Ãºnico.
 """
 
 from abc import ABC, abstractmethod
@@ -13,8 +13,8 @@ class Habilidad(ABC):
     
     Atributos:
         nombre (str): Nombre de la habilidad
-        descripcion (str): Descripción de lo que hace
-        costo_energia (int): Energía necesaria para usar la habilidad
+        descripcion (str): DescripciÃ³n de lo que hace
+        costo_energia (int): EnergÃ­a necesaria para usar la habilidad
         tipo (str): Tipo de habilidad (ofensiva, defensiva, especial, estado)
         es_curacion (bool): Indica si la habilidad tiene efectos curativos
     """
@@ -25,8 +25,8 @@ class Habilidad(ABC):
         
         Args:
             nombre: Nombre de la habilidad
-            descripcion: Descripción de lo que hace
-            costo_energia: Energía necesaria
+            descripcion: DescripciÃ³n de lo que hace
+            costo_energia: EnergÃ­a necesaria
             tipo: Tipo de habilidad
         """
         self.nombre = nombre
@@ -34,11 +34,14 @@ class Habilidad(ABC):
         self.costo_energia = costo_energia
         self.tipo = tipo  # "ofensiva", "defensiva", "especial", "estado"
         self.es_curacion = False  # Por defecto, no es curativa
+        # En combate de equipos, las habilidades con es_curacion=True
+        # SOLO pueden aplicarse a compañeros del mismo equipo.
+        self.cura_aliados = True
     
     @abstractmethod
     def usar(self, usuario, objetivo) -> Dict[str, Any]:
         """
-        Método abstracto que debe implementar cada habilidad.
+        MÃ©todo abstracto que debe implementar cada habilidad.
         
         Args:
             usuario: Personaje que usa la habilidad
@@ -51,9 +54,9 @@ class Habilidad(ABC):
     
     def __str__(self) -> str:
         """
-        Representación en string de la habilidad.
+        RepresentaciÃ³n en string de la habilidad.
         
         Returns:
-            String con información básica
+            String con informaciÃ³n bÃ¡sica
         """
         return f"{self.nombre} ({self.costo_energia}E): {self.descripcion}"

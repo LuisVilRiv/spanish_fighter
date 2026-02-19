@@ -102,61 +102,21 @@ class Combate:
 
         print(f"\n{C.NEGRITA}{C.AMARILLO}========== TURNO {self.turno_actual} =========={C.RESET}")
 
-        velocidad_jugador = self.jugador.velocidad * random.uniform(0.9, 1.1)
-        velocidad_ia = self.ia.velocidad * random.uniform(0.9, 1.1)
+        # Solo ejecuta la acción del JUGADOR.
+        # La IA actuará en la siguiente llamada a ejecutar_turno_ia().
+        resultado_jugador = self._ejecutar_accion(self.jugador, self.ia, accion_jugador, indice_habilidad)
+        resultado.jugador_accion = resultado_jugador.get("mensaje", "")
+        self._actualizar_resultado_jugador(resultado, resultado_jugador)
 
-        if velocidad_jugador >= velocidad_ia:
-            resultado_jugador = self._ejecutar_accion(self.jugador, self.ia, accion_jugador, indice_habilidad)
-            resultado.jugador_accion = resultado_jugador.get("mensaje", "")
-            self._actualizar_resultado_jugador(resultado, resultado_jugador)
-
-            if not self.ia.esta_vivo():
-                resultado.ia_vida_actual = 0
-                resultado.jugador_vida_actual = self.jugador.vida_actual
-                resultado.jugador_energia_actual = self.jugador.energia_actual
-                resultado.ia_energia_actual = self.ia.energia_actual
-                resultado.mensajes.append(f"{C.ROJO_BRILLANTE}¡{self.ia.nombre} ha sido derrotado!{C.RESET}")
-                self._verificar_fin_combate()
-                return resultado
-
-            resultado_ia = self._ejecutar_accion_ia()
-            resultado.ia_accion = resultado_ia.get("mensaje", "")
-            self._actualizar_resultado_ia(resultado, resultado_ia)
-
-            if not self.jugador.esta_vivo():
-                resultado.jugador_vida_actual = 0
-                resultado.ia_vida_actual = self.ia.vida_actual
-                resultado.jugador_energia_actual = self.jugador.energia_actual
-                resultado.ia_energia_actual = self.ia.energia_actual
-                resultado.mensajes.append(f"{C.ROJO_BRILLANTE}¡{self.jugador.nombre} ha sido derrotado!{C.RESET}")
-                self._verificar_fin_combate()
-                return resultado
-        else:
-            resultado_ia = self._ejecutar_accion_ia()
-            resultado.ia_accion = resultado_ia.get("mensaje", "")
-            self._actualizar_resultado_ia(resultado, resultado_ia)
-
-            if not self.jugador.esta_vivo():
-                resultado.jugador_vida_actual = 0
-                resultado.ia_vida_actual = self.ia.vida_actual
-                resultado.jugador_energia_actual = self.jugador.energia_actual
-                resultado.ia_energia_actual = self.ia.energia_actual
-                resultado.mensajes.append(f"{C.ROJO_BRILLANTE}¡{self.jugador.nombre} ha sido derrotado!{C.RESET}")
-                self._verificar_fin_combate()
-                return resultado
-
-            resultado_jugador = self._ejecutar_accion(self.jugador, self.ia, accion_jugador, indice_habilidad)
-            resultado.jugador_accion = resultado_jugador.get("mensaje", "")
-            self._actualizar_resultado_jugador(resultado, resultado_jugador)
-
-            if not self.ia.esta_vivo():
-                resultado.ia_vida_actual = 0
-                resultado.jugador_vida_actual = self.jugador.vida_actual
-                resultado.jugador_energia_actual = self.jugador.energia_actual
-                resultado.ia_energia_actual = self.ia.energia_actual
-                resultado.mensajes.append(f"{C.ROJO_BRILLANTE}¡{self.ia.nombre} ha sido derrotado!{C.RESET}")
-                self._verificar_fin_combate()
-                return resultado
+        if not self.ia.esta_vivo():
+            resultado.ia_vida_actual         = 0
+            resultado.jugador_vida_actual    = self.jugador.vida_actual
+            resultado.jugador_energia_actual = self.jugador.energia_actual
+            resultado.ia_energia_actual      = self.ia.energia_actual
+            resultado.mensajes.append(f"\xc2\xa1{self.ia.nombre} ha sido derrotado!")
+            self._verificar_fin_combate()
+            self.historial.append(resultado)
+            return resultado
 
         self._aplicar_regeneracion(resultado)
 
@@ -462,7 +422,7 @@ class Combate:
 
         print(f"\n{C.AMARILLO}+---------------------------------------+{C.RESET}")
         print(f"{C.AMARILLO}|        ESTADO ACTUAL                  |{C.RESET}")
-        print(f"{C.AMARILLO}╠---------------------------------------╣{C.RESET}")
+        print(f"{C.AMARILLO}─────────────────────────────────────────{C.RESET}")
         vida_porcentaje_j = (resultado.jugador_vida_actual / self.jugador.vida_maxima) * 100
         barra_j = self._crear_barra_vida(vida_porcentaje_j)
         print(f"{C.VERDE}{self.jugador.nombre:20} {barra_j} {resultado.jugador_vida_actual:3}/{self.jugador.vida_maxima:3}{C.RESET}")
@@ -493,7 +453,7 @@ class Combate:
     def mostrar_estadisticas_finales(self, resultado: ResultadoCombate):
         print(f"\n{C.CYAN}+---------------------------------------------------+{C.RESET}")
         print(f"{C.CYAN}|        ESTADÍSTICAS FINALES DEL COMBATE        |{C.RESET}")
-        print(f"{C.CYAN}╠---------------------------------------------------╣{C.RESET}")
+        print(f"{C.CYAN}───────────────────────────────────────────────────{C.RESET}")
         print(f"{C.CYAN}| Turnos totales: {resultado.turnos_totales:30} |{C.RESET}")
         print(f"{C.CYAN}| Daño total jugador: {resultado.daño_total_jugador:24} |{C.RESET}")
         print(f"{C.CYAN}| Daño total IA: {resultado.daño_total_ia:29} |{C.RESET}")
@@ -514,11 +474,13 @@ class Combate:
                 print(f"  {C.CYAN}- ... y {len(eventos_destacados)-5} eventos más{C.RESET}")
 
     def ejecutar_turno_ia(self) -> ResultadoTurno:
-        """Ejecuta un turno completo de la IA (sin intervención del jugador)."""
+        """
+        Ejecuta la acción de la IA (segunda mitad del round).
+        NO incrementa turno_actual: ya lo hizo ejecutar_turno() al inicio del round.
+        """
         if self.estado != EstadoCombate.EN_CURSO:
             raise ValueError("El combate ya ha terminado")
 
-        self.turno_actual += 1
         resultado = ResultadoTurno()
 
         print(f"\n{C.NEGRITA}{C.AMARILLO}========== TURNO {self.turno_actual} (IA) =========={C.RESET}")
