@@ -16,6 +16,7 @@ Layout:
   └──────────────────────────────────────────────────────────┘
 """
 
+import re as _re
 import arcade
 from scenes.base_view import BaseView
 from gui.widgets import ImageButton, RetroLabel, HealthBar
@@ -41,19 +42,23 @@ class CombatTeamView(BaseView):
         self.equipo2 = equipo2
         self.combate = CombateEquipo(equipo1, equipo2)
 
-        self.ui_elements   = []
+        self.ui_elements    = []
         self.habilidad_btns = []
         self.objetivo_btns  = []
         self.post_btns      = []
         self.health_bars    = {}   # personaje -> (vida_bar, energia_bar)
-        self.sprite_list    = arcade.SpriteList()   # <-- AÑADIDO
+        self.sprite_list    = arcade.SpriteList()
 
-        self.mostrando_habilidades  = False
-        self.esperando_objetivo     = False
+        self.mostrando_habilidades   = False
+        self.esperando_objetivo      = False
         self.accion_pendiente: Accion = None
         self.habilidad_idx_pendiente: int = None
         self._log: list = ["¡Comienza la batalla!"]
         self._combate_terminado = False
+        self._ia_pendiente = False
+
+        # Historial plano: acumula ResultadoAccion + entradas de evento
+        self._historial_plano: list = []
 
         self._setup_ui()
         # Ejecutar IAs iniciales si el primer turno es de IA
@@ -87,9 +92,6 @@ class CombatTeamView(BaseView):
         self._log_rect    = (10, log_y, w - 20, log_h)
 
         # ── Sprites y barras de vida ──
-        n1 = len(self.equipo1)
-        n2 = len(self.equipo2)
-
         def _place_team(team, x_start, x_end, flip=False):
             n = len(team)
             slot_w = (x_end - x_start) // max(n, 1)
@@ -207,22 +209,35 @@ class CombatTeamView(BaseView):
         # ── Botones de habilidad (ocultos por defecto) ──
         self._crear_habilidad_btns(btn_y + btn_h_sz + 8)
 
-        # ── Botones postcombate ──
+        # ── Botones postcombate (3 botones centrados) ──
+        pc_btn_w = 190
+        pc_btn_h = 50
+        pc_gap   = 20
+        total_pc = 3 * pc_btn_w + 2 * pc_gap
+        pc_start = w // 2 - total_pc // 2
+
         self.btn_revancha = ImageButton(
-            x=w // 2 - 310, y=btn_y,
-            width=190, height=50,
+            x=pc_start, y=btn_y,
+            width=pc_btn_w, height=pc_btn_h,
             text="REVANCHA",
             normal_color=(0, 130, 0), hover_color=(0, 180, 0),
             callback=self._revancha
         )
+        self.btn_historial = ImageButton(
+            x=pc_start + pc_btn_w + pc_gap, y=btn_y,
+            width=pc_btn_w, height=pc_btn_h,
+            text="HISTORIAL",
+            normal_color=(130, 130, 0), hover_color=(180, 180, 0),
+            callback=self._ver_historial
+        )
         self.btn_menu = ImageButton(
-            x=w // 2 + 120, y=btn_y,
-            width=190, height=50,
+            x=pc_start + 2 * (pc_btn_w + pc_gap), y=btn_y,
+            width=pc_btn_w, height=pc_btn_h,
             text="MENÚ",
             normal_color=(130, 0, 0), hover_color=(180, 0, 0),
             callback=self._volver_menu
         )
-        self.post_btns = [self.btn_revancha, self.btn_menu]
+        self.post_btns = [self.btn_revancha, self.btn_historial, self.btn_menu]
         for b in self.post_btns:
             b.visible = False
             self.ui_elements.append(b)
@@ -271,47 +286,39 @@ class CombatTeamView(BaseView):
     def _crear_objetivo_btns(self, accion: Accion, hab_idx: int = None):
         """Crea botones para seleccionar objetivo (rival o aliado)."""
         self.objetivo_btns.clear()
-        w, h = self.app.width, self.app.height
         actor = self.combate.personaje_turno_actual
         if actor is None:
             return
 
-        # Determinar candidatos: para curaciones solo aliados; demás solo rivales
-        if accion == Accion.HABILIDAD_ESPECIAL and hab_idx is not None:
-            hab = actor.habilidades[hab_idx]
-            es_cur = getattr(hab, 'es_curacion', False)
-        else:
-            es_cur = False
+        w, h = self.app.width, self.app.height
+
+        hab = actor.habilidades[hab_idx] if hab_idx is not None else None
+        es_cur = getattr(hab, 'es_curacion', False) if hab else False
 
         if es_cur:
             candidatos = [p for p in self.combate.equipo_propio_de(actor) if p.esta_vivo()]
-            titulo = "Elige aliado a curar:"
         else:
             candidatos = [p for p in self.combate.equipo_rival_de(actor) if p.esta_vivo()]
-            titulo = "Elige objetivo:"
 
-        self.lbl_turno.text = titulo
-        self.lbl_turno.color = (255, 200, 100)
-
-        bw = 160
-        total = len(candidatos) * (bw + 10) - 10
+        bw = 150
+        gap = 10
+        total = len(candidatos) * (bw + gap) - gap
         sx = w // 2 - total // 2
-        by = h // 2 - 30
+        by = 15
 
-        for i, p in enumerate(candidatos):
-            col = COL_EQ1 if p in self.combate.equipo1 else COL_EQ2
+        for i, cand in enumerate(candidatos):
             btn = ImageButton(
-                x=sx + i * (bw + 10), y=by,
-                width=bw, height=55,
-                text=p.nombre[:14],
-                normal_color=col, hover_color=(min(col[0]+40,255), min(col[1]+40,255), min(col[2]+40,255)),
-                callback=lambda tgt=p: self._cmd_confirmar_objetivo(tgt)
+                x=sx + i * (bw + gap), y=by,
+                width=bw, height=50,
+                text=cand.nombre[:14],
+                normal_color=(100, 80, 140), hover_color=(140, 110, 190),
+                callback=lambda obj=cand: self._cmd_confirmar_objetivo(obj)
             )
             self.objetivo_btns.append(btn)
 
         btn_cancel = ImageButton(
-            x=w // 2 - 80, y=by - 65,
-            width=160, height=40,
+            x=w - 160, y=by,
+            width=140, height=40,
             text="CANCELAR",
             normal_color=(140, 70, 70), hover_color=(180, 90, 90),
             callback=self._cmd_cancelar_objetivo
@@ -319,7 +326,7 @@ class CombatTeamView(BaseView):
         self.objetivo_btns.append(btn_cancel)
 
     # ──────────────────────────────────────────────
-    # Comandos del jugador
+    # Comandos de acción
     # ──────────────────────────────────────────────
 
     def _cmd_ataque(self):
@@ -329,15 +336,11 @@ class CombatTeamView(BaseView):
         if actor is None or actor.es_ia:
             return
         rivales = [p for p in self.combate.equipo_rival_de(actor) if p.esta_vivo()]
-        if not rivales:
-            return
         if len(rivales) == 1:
             self._ejecutar_jugador(Accion.ATAQUE_BASICO, rivales[0])
         else:
             self.accion_pendiente = Accion.ATAQUE_BASICO
-            self.habilidad_idx_pendiente = None
             self.esperando_objetivo = True
-            self.mostrando_habilidades = False
             self._crear_objetivo_btns(Accion.ATAQUE_BASICO)
             self._actualizar_visibilidad()
 
@@ -365,7 +368,6 @@ class CombatTeamView(BaseView):
             return
         self.mostrando_habilidades = True
         self.esperando_objetivo = False
-        # Rebuild habilidad buttons for current actor
         btn_h_sz = 55
         self._crear_habilidad_btns(15 + btn_h_sz + 8)
         self._actualizar_visibilidad()
@@ -386,8 +388,6 @@ class CombatTeamView(BaseView):
             return
 
         es_cur = getattr(hab, 'es_curacion', False)
-        # Para curaciones, si hay un solo aliado vivo: automático
-        # Para ofensivas, si hay un solo rival: automático
         if es_cur:
             candidatos = [p for p in self.combate.equipo_propio_de(actor) if p.esta_vivo()]
         else:
@@ -430,6 +430,8 @@ class CombatTeamView(BaseView):
         if self.combate.estado != EstadoCombate.EN_CURSO:
             return
         resultado = self.combate.ejecutar_accion_jugador(accion, objetivo, hab_idx)
+        # Guardar en historial plano
+        self._historial_plano.append(resultado)
         self._log_accion(resultado)
         self._actualizar_barras()
 
@@ -448,14 +450,23 @@ class CombatTeamView(BaseView):
 
         resultados = self.combate.ejecutar_acciones_ia_hasta_jugador()
         for r in resultados:
-            self._historial.append(r) if hasattr(self, "_historial") else None
+            # Guardar en historial plano
+            self._historial_plano.append(r)
             self._log_accion(r)
 
-        # Mostrar evento aleatorio si ocurrió en este round
+        # Capturar evento aleatorio y guardarlo en el historial plano
         ev = getattr(self.combate, "ultimo_evento", None)
         if ev:
             self._log_evento(ev)
             self.combate.ultimo_evento = None
+            # Crear entrada de evento para el historial
+            ra_ev = ResultadoAccion()
+            ra_ev.actor_nombre = "⚡ EVENTO"
+            ra_ev.descripcion = ev.get('nombre', 'Evento aleatorio')
+            # Limpiar códigos ANSI del mensaje
+            msg_limpio = _re.sub(r'\x1b\[[0-9;]*m', '', ev.get('mensaje', ''))
+            ra_ev.mensajes_extra = [l.strip() for l in msg_limpio.splitlines() if l.strip()][:6]
+            self._historial_plano.append(ra_ev)
 
         self._actualizar_barras()
 
@@ -503,6 +514,15 @@ class CombatTeamView(BaseView):
         for m in ra.mensajes_extra:
             self._log_add(f"  ⚠ {m}")
 
+    def _log_evento(self, ev: dict):
+        """Muestra un evento aleatorio en el log, limpiando códigos ANSI."""
+        msg = ev.get("mensaje", "")
+        msg_limpio = _re.sub(r'\x1b\[[0-9;]*m', '', msg)
+        lineas = [l for l in msg_limpio.splitlines() if l.strip()]
+        self._log_add("━━ 🎲 EVENTO ALEATORIO ━━")
+        for l in lineas[:4]:
+            self._log_add(f"  {l}")
+
     # ──────────────────────────────────────────────
     # Actualización de la UI
     # ──────────────────────────────────────────────
@@ -537,11 +557,15 @@ class CombatTeamView(BaseView):
         es_turno_jugador = (actor is not None and not actor.es_ia
                             and not self._combate_terminado)
 
-        mostrar_principales = es_turno_jugador and not self.mostrando_habilidades and not self.esperando_objetivo
+        mostrar_principales = (es_turno_jugador
+                               and not self.mostrando_habilidades
+                               and not self.esperando_objetivo)
         for b in self._action_btns:
             b.visible = mostrar_principales
 
-        mostrar_habs = es_turno_jugador and self.mostrando_habilidades and not self.esperando_objetivo
+        mostrar_habs = (es_turno_jugador
+                        and self.mostrando_habilidades
+                        and not self.esperando_objetivo)
         for b in self.habilidad_btns:
             b.visible = mostrar_habs
 
@@ -554,21 +578,11 @@ class CombatTeamView(BaseView):
         if self._ia_pendiente and not self._combate_terminado:
             self._ejecutar_ias_y_actualizar()
 
-    def _log_evento(self, ev: dict):
-        """Muestra un evento aleatorio en el log, limpiando códigos ANSI."""
-        import re as _re
-        msg = ev.get("mensaje", "")
-        msg_limpio = _re.sub(r'\x1b\[[0-9;]*m', '', msg)
-        lineas = [l for l in msg_limpio.splitlines() if l.strip()]
-        self._log_add("━━ 🎲 EVENTO ALEATORIO ━━")
-        for l in lineas[:4]:
-            self._log_add(f"  {l}")
-
     def on_draw(self):
         self.clear()
         arcade.set_background_color(self.background_color)
 
-        # Zona de combate (fondo)
+        # Zona de log (fondo)
         lx, ly, lw, lh = self._log_rect
         arcade.draw_rect_filled(
             arcade.LBWH(lx, ly, lw, lh), (15, 15, 25, 220)
@@ -601,11 +615,8 @@ class CombatTeamView(BaseView):
                 elem.on_mouse_motion(x, y, dx, dy)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        # Primero dejar que la clase base maneje los ui_elements
         if super().on_mouse_press(x, y, button, modifiers):
             return
-
-        # Si no, procesar listas especiales
         for b in self.objetivo_btns:
             if b.on_mouse_press(x, y, button, modifiers):
                 return
@@ -618,7 +629,6 @@ class CombatTeamView(BaseView):
     # ──────────────────────────────────────────────
 
     def _revancha(self):
-        # Reinstanciar los mismos tipos de personajes con los mismos flags
         eq1 = [(type(p), p.es_ia) for p in self.equipo1]
         eq2 = [(type(p), p.es_ia) for p in self.equipo2]
         new_eq1 = [cls() for cls, _ in eq1]
@@ -628,6 +638,13 @@ class CombatTeamView(BaseView):
         for p, (_, ei) in zip(new_eq2, eq2):
             p.es_ia = ei
         self.app.goto_view(CombatTeamView(self.app, new_eq1, new_eq2))
+
+    def _ver_historial(self):
+        # Pasamos el historial plano acumulado en la escena (incluye eventos)
+        def _volver():
+            from scenes.menu_scene import MenuView
+            self.app.goto_view(MenuView(self.app))
+        self.app.push_view(HistorialView(self.app, self._historial_plano, on_back=_volver))
 
     def _volver_menu(self):
         from scenes.menu_scene import MenuView
