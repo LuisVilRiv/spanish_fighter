@@ -225,28 +225,44 @@ class CombateEquipo:
     # ============================================================
 
     def ejecutar_acciones_ia_hasta_jugador(self) -> List[ResultadoAccion]:
+        import traceback
         resultados = []
+        iteracion = 0
+
+        print(f"[IA_LOOP] INICIO — turno_idx={self._turno_idx} | ya_actuaron={len(self._ya_actuaron)}")
+        print(f"[IA_LOOP] cola=[{', '.join(p.nombre for p in self._cola_turno)}]")
 
         while True:
+            iteracion += 1
             if self.estado != EstadoCombate.EN_CURSO:
+                print(f"[IA_LOOP] it={iteracion} — combate no en curso, saliendo")
                 break
 
+            idx_antes = self._turno_idx
             p = self.personaje_turno_actual
-            print(f"[DEBUG] turno_actual: {p.nombre if p else None} | es_ia={getattr(p,'es_ia','?') if p else '?'} | turno_idx={self._turno_idx}")
+            idx_despues = self._turno_idx
+
+            print(f"[IA_LOOP] it={iteracion} | idx_antes={idx_antes} → idx_despues={idx_despues} | "
+                  f"personaje={p.nombre if p else 'None'} | es_ia={getattr(p,'es_ia','?') if p else '?'}")
 
             if p is None:
+                print(f"[IA_LOOP] p=None → fin_round={self._fin_round()}, iniciando nueva ronda si procede")
                 if self._fin_round() and self.estado == EstadoCombate.EN_CURSO:
                     self._post_accion(None)
                 break
 
             if not p.es_ia:
+                print(f"[IA_LOOP] {p.nombre} es JUGADOR → break correcto")
+                print(f"[IA_LOOP] Llamado desde:\n{''.join(traceback.format_stack(limit=6))}")
                 break
 
+            print(f"[IA_LOOP] Ejecutando IA: {p.nombre}")
             resultado = self._ejecutar_accion_interna_ia(p)
             self._round_en_curso.add(resultado)
             resultados.append(resultado)
             self._post_accion(p)
 
+        print(f"[IA_LOOP] FIN — {len(resultados)} acciones de IA ejecutadas")
         return resultados
 
     # ============================================================

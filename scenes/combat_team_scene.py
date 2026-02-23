@@ -421,6 +421,7 @@ class CombatTeamView(BaseView):
     def _ejecutar_jugador(self, accion: Accion, objetivo, hab_idx: int = None):
         if self.combate.estado != EstadoCombate.EN_CURSO:
             return
+        self._block_next_press = True   # bloquear clicks mientras se procesa la acción
         resultado = self.combate.ejecutar_accion_jugador(accion, objetivo, hab_idx)
         self._historial_plano.append(resultado)
         self._log_accion(resultado)
@@ -468,14 +469,12 @@ class CombatTeamView(BaseView):
         siguiente = self.combate.personaje_turno_actual
 
         if siguiente is None:
-            # Motor en transición (no debería pasar con el fix del motor)
-            # No ponemos _ia_pendiente para no crear bucle infinito
             pass
         elif siguiente.es_ia:
-            # Quedan IAs por actuar: reintentar en el siguiente frame
             self._ia_pendiente = True
         else:
-            # Turno de jugador: flash de aviso y esperar input
+            # Turno de jugador: desbloquear clicks y mostrar flash
+            self._block_next_press = False
             self._flash_timer      = 1.0
             self._flash_es_jugador = True
 
@@ -483,6 +482,7 @@ class CombatTeamView(BaseView):
 
     def _fin_combate(self):
         self._combate_terminado = True
+        self._block_next_press = True   # bloquear el click que terminó el combate
         resultado = self.combate.obtener_resultado_final()
         self._log_add(f"══ {resultado.mensaje_final} ══")
         self._actualizar_ui()
@@ -843,7 +843,8 @@ class CombatTeamView(BaseView):
             # Guardia: si el turno actual ya es del jugador, ceder control sin ejecutar IAs
             siguiente = self.combate.personaje_turno_actual
             if siguiente is not None and not siguiente.es_ia:
-                self._ia_pendiente = False
+                self._ia_pendiente     = False
+                self._block_next_press = False
                 self._flash_timer      = 1.0
                 self._flash_es_jugador = True
                 self._actualizar_ui()
@@ -905,20 +906,30 @@ class CombatTeamView(BaseView):
                 elem.on_mouse_motion(x, y, dx, dy)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        if super().on_mouse_press(x, y, button, modifiers):
+        if self._block_next_press:
             return
+
+        # objetivo_btns y habilidad_btns tienen prioridad absoluta:
+        # si el click los alcanza NO debe propagarse a ui_elements
         for b in self.objetivo_btns:
             if b.on_mouse_press(x, y, button, modifiers):
+                self._block_next_press = True   # evitar doble-disparo tras cambio de UI
                 return
         for b in self.habilidad_btns:
             if b.on_mouse_press(x, y, button, modifiers):
+                self._block_next_press = True
                 return
+
+        # Solo si ningún botón flotante consumió el click, llega a la UI base
+        if super().on_mouse_press(x, y, button, modifiers):
+            self._block_next_press = True
 
     # ═══════════════════════════════════════════════════════════════════════
     # Postcombate
     # ═══════════════════════════════════════════════════════════════════════
 
     def _revancha(self):
+        self._block_next_press = True
         eq1 = [(type(p), p.es_ia) for p in self.equipo1]
         eq2 = [(type(p), p.es_ia) for p in self.equipo2]
         new_eq1 = [cls() for cls, _ in eq1]
@@ -930,6 +941,7 @@ class CombatTeamView(BaseView):
         self.app.goto_view(CombatTeamView(self.app, new_eq1, new_eq2))
 
     def _ver_historial(self):
+        self._block_next_press = True
         def _volver():
             from scenes.menu_scene import MenuView
             self.app.goto_view(MenuView(self.app))
@@ -937,6 +949,7 @@ class CombatTeamView(BaseView):
                                          on_back=_volver))
 
     def _volver_menu(self):
+        self._block_next_press = True
         from scenes.menu_scene import MenuView
         self.app.goto_view(MenuView(self.app))
 
