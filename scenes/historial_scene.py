@@ -1,20 +1,56 @@
 # scenes/historial_scene.py
 """
-HistorialView — muestra el historial de cualquier modo de combate.
+HistorialView — muestra el historial de combate con tarjetas visuales.
 
-Soporta dos formatos de resultado:
-  • ResultadoTurno  (modo 1v1)  — campos: jugador_accion, ia_accion,
-                                   daño_jugador_a_ia, daño_ia_a_jugador,
-                                   curacion_jugador, curacion_ia, evento_aleatorio
-  • ResultadoAccion (modo equipo) — campos: descripcion, daño, curacion,
-                                    mensajes_extra, actor_nombre, objetivo_nombre,
-                                    actor_equipo, es_ia
+Cada entrada se renderiza como una tarjeta con panel de fondo y
+color codificado según el tipo:
+  🎮  Verde   — acción del jugador humano
+  🤖  Morado  — acción de la IA
+  ⚡  Amarillo — evento aleatorio
+  📋  Azul    — turno 1v1 (ResultadoTurno)
 """
+import re as _re
 import arcade
 from scenes.base_view import BaseView
 from gui.widgets import ImageButton, RetroLabel
 
-TURNOS_POR_PAGINA = 7
+# ── Cuántas tarjetas por página ───────────────────────────────────────────
+CARDS_POR_PAGINA = 5
+
+# ── Paletas por tipo de tarjeta ───────────────────────────────────────────
+# (fill_body, border, fill_header, color_titulo)
+CARD_JUGADOR = (
+    (18, 38, 18, 215),
+    (65, 170, 65, 200),
+    (30, 65, 30),
+    (140, 240, 140),
+)
+CARD_IA = (
+    (30, 18, 40, 215),
+    (150, 65, 180, 200),
+    (55, 30, 70),
+    (220, 150, 255),
+)
+CARD_EVENTO = (
+    (42, 36, 8, 215),
+    (210, 175, 30, 200),
+    (75, 62, 12),
+    (255, 230, 80),
+)
+CARD_1V1 = (
+    (18, 24, 42, 215),
+    (70, 105, 190, 200),
+    (28, 42, 75),
+    (140, 185, 255),
+)
+
+# Panel header/footer (igual que otras escenas)
+COL_PANEL_BG     = (15, 17, 28, 220)
+COL_PANEL_BORDER = (60, 65, 95, 200)
+
+
+def _limpiar_ansi(texto: str) -> str:
+    return _re.sub(r'\x1b\[[0-9;]*m', '', texto)
 
 
 class HistorialView(BaseView):
@@ -23,210 +59,302 @@ class HistorialView(BaseView):
         self.historial        = historial
         self.on_back_callback = on_back
         self.current_page     = 0
+
+        self._card_data: list = []   # datos de rectángulos para on_draw
         self.ui_elements      = []
+        self._w = app.width
+        self._h = app.height
         self._setup_ui()
 
-    # ── UI ───────────────────────────────────────────────────────────────────
+    # ── Configuración de UI ───────────────────────────────────────────────
 
     def _setup_ui(self):
         self.ui_elements.clear()
+        self._card_data.clear()
+
         w, h = self.app.width, self.app.height
-        self.background_color = (30, 35, 50)
+        self._w, self._h = w, h
+        self.background_color = (22, 26, 38)
 
-        HEADER_H = int(h * 0.11)
-        FOOTER_H = int(h * 0.16)
-        TEXT_TOP  = h - HEADER_H
-        TEXT_BOT  = FOOTER_H
+        # ── Zonas proporcionales (mismo patrón que characters_info_scene) ──
+        HEADER_H   = max(52, int(h * 0.095))
+        BTN_H      = max(36, int(h * 0.055))
+        BTN_GAP    = max(8,  int(h * 0.012))
+        MARGIN_BOT = max(12, int(h * 0.018))
+        FOOTER_H   = MARGIN_BOT + BTN_H + BTN_GAP + BTN_H + MARGIN_BOT
 
-        # Título
+        self._header_h = HEADER_H
+        self._footer_h = FOOTER_H
+
+        content_top = h - HEADER_H
+        content_bot = FOOTER_H
+        content_h   = content_top - content_bot
+
+        # ── Header: título + contadores ────────────────────────────────────
+        title_sz = max(18, int(HEADER_H * 0.42))
         self.ui_elements.append(RetroLabel(
             "HISTORIAL DEL COMBATE",
             w // 2, h - HEADER_H // 2,
-            font_size=max(20, int(h * 0.042)),
-            color=(255, 220, 150),
+            font_size=title_sz, color=(255, 220, 150),
             anchor_x='center', anchor_y='center'
         ))
 
-        # Indicador de página
+        pag_sz     = max(11, int(HEADER_H * 0.22))
         total_pags = self._total_paginas()
         self.lbl_pagina = RetroLabel(
             f"Pág. {self.current_page + 1} / {total_pags}",
-            w - int(w * 0.04), h - HEADER_H // 2,
-            font_size=max(11, int(h * 0.020)),
-            color=(160, 160, 180),
+            w - int(w * 0.025), h - HEADER_H // 2,
+            font_size=pag_sz, color=(160, 165, 195),
             anchor_x='right', anchor_y='center'
         )
         self.ui_elements.append(self.lbl_pagina)
 
-        # Cuerpo de texto
-        self.text_label = RetroLabel(
-            self._get_page_text(),
-            x=int(w * 0.05), y=TEXT_TOP,
-            width=int(w * 0.90),
-            font_size=max(11, int(h * 0.019)),
-            color=(200, 200, 200),
-            anchor_x='left', anchor_y='top', multiline=True
-        )
-        self.ui_elements.append(self.text_label)
+        self.ui_elements.append(RetroLabel(
+            f"{len(self.historial)} acciones",
+            int(w * 0.025), h - HEADER_H // 2,
+            font_size=max(10, int(HEADER_H * 0.20)),
+            color=(110, 115, 145),
+            anchor_x='left', anchor_y='center'
+        ))
 
-        # Botones de pie
-        BTN_H   = int(FOOTER_H * 0.38)
-        BTN_GAP = int(w * 0.025)
-        nav_w   = int(min(w * 0.18, 175))
-        back_w  = int(min(w * 0.22, 210))
+        # ── Footer: dos filas de botones ───────────────────────────────────
+        nav_w   = int(min(w * 0.19, 180))
+        back_w  = int(min(w * 0.23, 215))
+        GAP_BTN = int(w * 0.020)
 
-        nav_row_y  = TEXT_BOT + int(FOOTER_H * 0.55) - BTN_H // 2
-        back_row_y = TEXT_BOT + int(FOOTER_H * 0.12)
-
+        # Fila 1 (más arriba): ANTERIOR | SIGUIENTE
+        nav_y = MARGIN_BOT + BTN_H + BTN_GAP
         self.ui_elements.extend([
             ImageButton(
-                x=w // 2 - nav_w - BTN_GAP, y=nav_row_y,
+                x=w // 2 - nav_w - GAP_BTN, y=nav_y,
                 width=nav_w, height=BTN_H,
                 text="◀ ANTERIOR",
-                normal_color=(90, 90, 120), hover_color=(120, 120, 160),
+                normal_color=(75, 80, 115), hover_color=(105, 110, 160),
                 callback=self.prev_page
             ),
             ImageButton(
-                x=w // 2 + BTN_GAP, y=nav_row_y,
+                x=w // 2 + GAP_BTN, y=nav_y,
                 width=nav_w, height=BTN_H,
                 text="SIGUIENTE ▶",
-                normal_color=(90, 90, 120), hover_color=(120, 120, 160),
+                normal_color=(75, 80, 115), hover_color=(105, 110, 160),
                 callback=self.next_page
-            ),
-            ImageButton(
-                x=w // 2 - back_w // 2, y=back_row_y,
-                width=back_w, height=BTN_H,
-                text="VOLVER",
-                normal_color=(110, 110, 135), hover_color=(145, 145, 175),
-                callback=self.back
             ),
         ])
 
-    # ── Paginación ───────────────────────────────────────────────────────────
+        # Fila 2 (abajo): VOLVER
+        self.ui_elements.append(ImageButton(
+            x=w // 2 - back_w // 2, y=MARGIN_BOT,
+            width=back_w, height=BTN_H,
+            text="VOLVER",
+            normal_color=(100, 105, 130), hover_color=(135, 140, 175),
+            callback=self.back
+        ))
 
-    def _total_paginas(self) -> int:
-        return max(1, (len(self.historial) + TURNOS_POR_PAGINA - 1) // TURNOS_POR_PAGINA)
+        # ── Tarjetas de contenido ──────────────────────────────────────────
+        CARD_GAP = max(6, int(content_h * 0.012))
+        PAD_X    = int(w * 0.035)
 
-    def _get_page_text(self) -> str:
-        start = self.current_page * TURNOS_POR_PAGINA
-        page  = self.historial[start:start + TURNOS_POR_PAGINA]
-        if not page:
-            return "No hay entradas en el historial."
+        n_cards = CARDS_POR_PAGINA
+        card_h  = (content_h - (n_cards + 1) * CARD_GAP) // n_cards
+        card_w  = w - 2 * PAD_X
 
-        lines = []
-        for i, entrada in enumerate(page, start=start + 1):
-            lines.extend(self._formatear_entrada(i, entrada))
-            lines.append("")
-        return "\n".join(lines)
+        start = self.current_page * CARDS_POR_PAGINA
+        page  = self.historial[start:start + CARDS_POR_PAGINA]
 
-    # ── Formateo adaptativo ───────────────────────────────────────────────────
+        for idx, entrada in enumerate(page):
+            card_y = content_top - CARD_GAP - (idx + 1) * card_h - idx * CARD_GAP
+            self._build_card(
+                entrada, start + idx + 1,
+                PAD_X, card_y, card_w, card_h
+            )
+
+        # Sin entradas
+        if not self.historial:
+            self.ui_elements.append(RetroLabel(
+                "No hay entradas en el historial.",
+                w // 2, content_bot + content_h // 2,
+                font_size=max(14, int(h * 0.025)),
+                color=(140, 140, 160),
+                anchor_x='center', anchor_y='center'
+            ))
+
+    def _build_card(self, entrada, numero: int,
+                    cx: int, cy: int, cw: int, ch: int):
+        """Construye una tarjeta visual: rect + etiquetas de texto."""
+        _tipo, palette, lineas = self._parse_entrada(numero, entrada)
+
+        fill, border, hdr_fill, hdr_color = palette
+
+        HDR_H      = max(20, int(ch * 0.30))
+        BODY_PAD_X = 14
+        BODY_PAD_Y = 5
+        body_h     = ch - HDR_H
+
+        # Guardar rect para on_draw
+        self._card_data.append({
+            'cx': cx, 'cy': cy, 'cw': cw, 'ch': ch,
+            'hdr_h': HDR_H, 'body_h': body_h,
+            'fill': fill, 'border': border, 'hdr_fill': hdr_fill,
+        })
+
+        # ── Cabecera de la tarjeta ─────────────────────────────────────────
+        titulo    = lineas[0] if len(lineas) > 0 else ""
+        subtitulo = lineas[1] if len(lineas) > 1 else ""
+
+        hdr_cy   = cy + body_h + HDR_H // 2
+        title_sz = max(9, int(HDR_H * 0.40))
+        sub_sz   = max(8, int(HDR_H * 0.32))
+
+        if titulo:
+            self.ui_elements.append(RetroLabel(
+                titulo,
+                cx + BODY_PAD_X, hdr_cy,
+                font_size=title_sz, color=hdr_color,
+                anchor_x='left', anchor_y='center'
+            ))
+        if subtitulo:
+            self.ui_elements.append(RetroLabel(
+                subtitulo,
+                cx + cw - BODY_PAD_X, hdr_cy,
+                font_size=sub_sz, color=(195, 195, 215),
+                anchor_x='right', anchor_y='center'
+            ))
+
+        # ── Cuerpo de la tarjeta ───────────────────────────────────────────
+        body_lines = lineas[2:]
+        if not body_lines:
+            return
+
+        usable_h = body_h - 2 * BODY_PAD_Y
+        line_h   = usable_h / max(len(body_lines), 1)
+        font_sz  = max(8, int(min(line_h * 0.54, 13)))
+
+        for i, line in enumerate(body_lines):
+            if not line.strip():
+                continue
+            lx = cx + BODY_PAD_X + (14 if line.startswith("  ") else 0)
+            ly = cy + body_h - BODY_PAD_Y - int(i * line_h) - int(line_h * 0.5)
+            self.ui_elements.append(RetroLabel(
+                line.strip(),
+                lx, ly,
+                font_size=font_sz,
+                color=self._line_color(line),
+                anchor_x='left', anchor_y='center'
+            ))
+
+    # ── Colores por tipo de línea ─────────────────────────────────────────
 
     @staticmethod
-    def _formatear_entrada(numero: int, entrada) -> list:
-        """
-        Devuelve una lista de strings representando la entrada.
-        Compatible con:
-          - ResultadoTurno  (modo 1v1)
-          - ResultadoAccion (modo equipo), incluyendo entradas de evento
-        """
+    def _line_color(line: str) -> tuple:
+        s = line.strip()
+        if s.startswith("⚔"):
+            return (255, 115, 95)
+        if s.startswith("💚"):
+            return (95, 230, 125)
+        if s.startswith("⚠"):
+            return (255, 195, 70)
+        if s.startswith("🎮"):
+            return (130, 230, 130)
+        if s.startswith("🤖"):
+            return (210, 150, 255)
+        if s.startswith("⚡"):
+            return (255, 230, 80)
+        return (190, 195, 215)
 
-        # ── Formato equipo: tiene atributo 'descripcion' ──────────────────────
+    # ── Parser de entradas ────────────────────────────────────────────────
+
+    def _parse_entrada(self, numero: int, entrada) -> tuple:
+        """
+        Devuelve (tipo, palette, lineas).
+        lineas[0] = titulo header   ej: '#1  🎮 Segarro [Eq.1]'
+        lineas[1] = subtitulo       ej: '→ El Fatal [Eq.2]'
+        lineas[2:] = cuerpo
+        """
+        # ── ResultadoAccion (modo equipo) ─────────────────────────────────
         if hasattr(entrada, 'descripcion'):
-            # Detectar si es entrada de evento (actor_nombre empieza por ⚡)
-            actor_nom = getattr(entrada, 'actor_nombre', None)
-            es_evento = actor_nom and actor_nom.startswith("⚡")
+            actor_nom = getattr(entrada, 'actor_nombre', '') or ''
+            es_evento = actor_nom.startswith("⚡")
 
             if es_evento:
-                lines = [f"─── #{numero} ⚡ EVENTO ALEATORIO ───────────"]
-                lines.append(f"  {entrada.descripcion}")
-                for m in getattr(entrada, 'mensajes_extra', []):
-                    lines.append(f"  {m}")
-                return lines
+                titulo = f"#{numero}  ⚡ EVENTO ALEATORIO"
+                body   = [f"  {entrada.descripcion}"] + [
+                    f"  {_limpiar_ansi(m)}"
+                    for m in getattr(entrada, 'mensajes_extra', [])[:4]
+                ]
+                return 'evento', CARD_EVENTO, [titulo, ""] + body
 
-            # Acción normal de combate
-            obj_nom   = getattr(entrada, 'objetivo_nombre', None)
-            eq_actor  = getattr(entrada, 'actor_equipo', None)
-            es_ia     = getattr(entrada, 'es_ia', False)
-            ctrl      = "🤖" if es_ia else "🎮"
-            eq_tag    = f" [Eq.{eq_actor}]" if eq_actor else ""
+            # Acción de personaje
+            es_ia    = getattr(entrada, 'es_ia', False)
+            eq_actor = getattr(entrada, 'actor_equipo', '')
+            eq_obj   = getattr(entrada, 'objetivo_equipo', '')
+            obj_nom  = getattr(entrada, 'objetivo_nombre', '') or ''
+            ctrl     = "🤖" if es_ia else "🎮"
+            eq_tag   = f" [Eq.{eq_actor}]" if eq_actor else ""
+            palette  = CARD_IA if es_ia else CARD_JUGADOR
 
-            lines = [f"─── #{numero} ───────────────────────"]
-            if actor_nom:
-                linea_actor = f"  {ctrl} {actor_nom}{eq_tag}"
-                if obj_nom:
-                    obj_eq = getattr(entrada, 'objetivo_equipo', None)
-                    obj_eq_tag = f" [Eq.{obj_eq}]" if obj_eq else ""
-                    linea_actor += f" → {obj_nom}{obj_eq_tag}"
-                lines.append(linea_actor)
+            titulo    = f"#{numero}  {ctrl} {actor_nom}{eq_tag}"
+            subtitulo = (f"→ {obj_nom} [Eq.{eq_obj}]" if obj_nom else "")
 
-            lines.append(f"  Acción  : {entrada.descripcion}")
-
-            daño = getattr(entrada, 'daño', None)
+            body = [f"  {entrada.descripcion}"]
+            daño = getattr(entrada, 'daño', 0)
+            cur  = getattr(entrada, 'curacion', 0)
             if daño:
-                lines.append(f"  ⚔ Daño  : {daño}")
-
-            cur = getattr(entrada, 'curacion', None)
+                body.append(f"  ⚔ Daño: {daño}")
             if cur:
-                lines.append(f"  💚 Cur.  : {cur}")
+                body.append(f"  💚 Curación: {cur}")
+            for m in getattr(entrada, 'mensajes_extra', [])[:3]:
+                body.append(f"  ⚠ {_limpiar_ansi(m)}")
 
-            for m in getattr(entrada, 'mensajes_extra', []):
-                lines.append(f"  ⚠  {m}")
+            tipo = 'ia' if es_ia else 'jugador'
+            return tipo, palette, [titulo, subtitulo] + body
 
-            return lines
-
-        # ── Formato 1v1: campos clásicos ──────────────────────────────────────
-        lines = [f"─── #{numero} ───────────────────────"]
-
-        jac = getattr(entrada, 'jugador_accion', None)
-        iac = getattr(entrada, 'ia_accion', None)
-        dj  = getattr(entrada, 'daño_jugador_a_ia', None)
-        de  = getattr(entrada, 'daño_ia_a_jugador', None)
-        cj  = getattr(entrada, 'curacion_jugador', None)
-        ci  = getattr(entrada, 'curacion_ia', None)
+        # ── ResultadoTurno (modo 1v1) ─────────────────────────────────────
+        jac = getattr(entrada, 'jugador_accion', '') or ''
+        iac = getattr(entrada, 'ia_accion', '') or ''
+        dj  = getattr(entrada, 'daño_jugador_a_ia', 0)
+        de  = getattr(entrada, 'daño_ia_a_jugador', 0)
+        cj  = getattr(entrada, 'curacion_jugador', 0)
+        ci  = getattr(entrada, 'curacion_ia', 0)
         ev  = getattr(entrada, 'evento_aleatorio', None)
 
+        titulo = f"#{numero}  📋 Turno 1v1"
+        body   = []
         if jac:
-            lines.append(f"  🎮 Jugador : {jac}")
+            body.append(f"  🎮 {jac}")
         if iac:
-            lines.append(f"  🤖 IA      : {iac}")
+            body.append(f"  🤖 {iac}")
         if dj:
-            lines.append(f"  ⚔ Daño a IA     : {dj}")
+            body.append(f"  ⚔ Daño a IA: {dj}")
         if de:
-            lines.append(f"  ⚔ Daño recibido : {de}")
+            body.append(f"  ⚔ Daño recibido: {de}")
         if cj:
-            lines.append(f"  💚 Cur. jugador  : {cj}")
+            body.append(f"  💚 Cur. jugador: {cj}")
         if ci:
-            lines.append(f"  💚 Cur. IA       : {ci}")
+            body.append(f"  💚 Cur. IA: {ci}")
         if ev:
-            import re as _re
-            nombre_ev = ev.get('nombre', 'Evento aleatorio')
-            msg_limpio = _re.sub(r'\x1b\[[0-9;]*m', '', ev.get('mensaje', ''))
-            lineas_ev = [l.strip() for l in msg_limpio.splitlines() if l.strip()]
-            lines.append(f"  ⚡ Evento: {nombre_ev}")
-            for l in lineas_ev[:3]:
-                lines.append(f"     {l}")
+            nombre_ev = ev.get('nombre', 'Evento')
+            body.append(f"  ⚡ {nombre_ev}")
+            msg = _limpiar_ansi(ev.get('mensaje', ''))
+            for l in msg.splitlines()[:2]:
+                if l.strip():
+                    body.append(f"    {l.strip()}")
 
-        return lines
+        return '1v1', CARD_1V1, [titulo, ""] + body
 
-    def _refresh_page_label(self):
-        self.lbl_pagina.text = f"Pág. {self.current_page + 1} / {self._total_paginas()}"
+    # ── Paginación ────────────────────────────────────────────────────────
 
-    def _refresh_text(self):
-        self.text_label.text = self._get_page_text()
-
-    # ── Controles de página ──────────────────────────────────────────────────
+    def _total_paginas(self) -> int:
+        return max(1, (len(self.historial) + CARDS_POR_PAGINA - 1) // CARDS_POR_PAGINA)
 
     def prev_page(self):
         if self.current_page > 0:
             self.current_page -= 1
-            self._refresh_page_label()
-            self._refresh_text()
+            self._setup_ui()
 
     def next_page(self):
         if self.current_page < self._total_paginas() - 1:
             self.current_page += 1
-            self._refresh_page_label()
-            self._refresh_text()
+            self._setup_ui()
 
     def back(self):
         if self.on_back_callback:
@@ -234,20 +362,80 @@ class HistorialView(BaseView):
         else:
             self.app.pop_view()
 
-    # ── Render / eventos ─────────────────────────────────────────────────────
+    # ── Render ────────────────────────────────────────────────────────────
 
     def on_draw(self):
         self.clear()
+        w, h = self._w, self._h
+
+        # Fondo base
+        arcade.draw_rect_filled(
+            arcade.XYWH(w // 2, h // 2, w, h),
+            self.background_color
+        )
+
+        # Banda de header
+        arcade.draw_rect_filled(
+            arcade.LBWH(0, h - self._header_h, w, self._header_h),
+            COL_PANEL_BG
+        )
+        arcade.draw_line(
+            0, h - self._header_h,
+            w, h - self._header_h,
+            COL_PANEL_BORDER[:3], 1
+        )
+
+        # Banda de footer
+        arcade.draw_rect_filled(
+            arcade.LBWH(0, 0, w, self._footer_h),
+            COL_PANEL_BG
+        )
+        arcade.draw_line(
+            0, self._footer_h,
+            w, self._footer_h,
+            COL_PANEL_BORDER[:3], 1
+        )
+
+        # Tarjetas
+        for cd in self._card_data:
+            cx, cy, cw, ch   = cd['cx'], cd['cy'], cd['cw'], cd['ch']
+            hdr_h            = cd['hdr_h']
+            body_h           = cd['body_h']
+
+            # Fondo cuerpo
+            arcade.draw_rect_filled(
+                arcade.LBWH(cx, cy, cw, body_h),
+                cd['fill']
+            )
+            # Fondo cabecera
+            arcade.draw_rect_filled(
+                arcade.LBWH(cx, cy + body_h, cw, hdr_h),
+                cd['hdr_fill']
+            )
+            # Borde exterior
+            arcade.draw_rect_outline(
+                arcade.LBWH(cx, cy, cw, ch),
+                cd['border'], 2
+            )
+            # Línea divisoria cabecera/cuerpo
+            arcade.draw_line(
+                cx,      cy + body_h,
+                cx + cw, cy + body_h,
+                cd['border'][:3], 1
+            )
+
+        # Etiquetas y botones
         for elem in self.ui_elements:
             if hasattr(elem, 'draw'):
                 elem.draw()
 
+    # ── Eventos de entrada ────────────────────────────────────────────────
+
     def on_mouse_press(self, x, y, button, modifiers):
-        for elem in self.ui_elements:
-            if hasattr(elem, 'on_mouse_press'):
-                if elem.on_mouse_press(x, y, button, modifiers):
-                    return True
-        return False
+        # Bloquear el primer press (es el mismo click que abrió la vista)
+        if self._block_next_press:
+            return False
+        return super().on_mouse_press(x, y, button, modifiers)
 
     def on_mouse_motion(self, x, y, dx, dy):
         super().on_mouse_motion(x, y, dx, dy)
