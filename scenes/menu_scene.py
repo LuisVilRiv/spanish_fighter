@@ -28,7 +28,7 @@ class MenuView(BaseView):
         self.bg_bottom = arcade.color.SLATE_GRAY
 
         self.title = RetroLabel(
-            "Batalla CÃ³mica EspaÃ±ola",
+            "Batalla Cómica Española",
             w // 2, h - 150, font_size=48, color=(255, 255, 150),
             anchor_x='center', anchor_y='center'
         )
@@ -59,13 +59,13 @@ class MenuView(BaseView):
 
         # Popup: textos
         self.popup_title_text = arcade.Text(
-            "âš™ PRÃ“XIMAMENTE",
+            "PROXIMAMENTE",
             w // 2, h // 2 + 70,
             arcade.color.YELLOW, font_size=20,
             anchor_x="center", anchor_y="center", bold=True
         )
         self.popup_message_text = arcade.Text(
-            "Esta funcionalidad estarÃ¡ disponible\nen futuras actualizaciones del juego.\n\nÂ¡Gracias por tu paciencia!",
+            "Esta funcionalidad estará disponible\nen futuras actualizaciones del juego.\n\n¡Gracias por tu paciencia!",
             w // 2, h // 2 - 10,
             arcade.color.LIGHT_GRAY, font_size=14,
             anchor_x="center", anchor_y="center", multiline=True, width=400
